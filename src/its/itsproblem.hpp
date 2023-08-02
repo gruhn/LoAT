@@ -18,6 +18,7 @@
 #pragma once
 
 #include "rule.hpp"
+#include "clause.hpp"
 #include "dependencygraph.hpp"
 #include "types.hpp"
 
@@ -60,6 +61,7 @@ public:
     TransIdx addRule(const Rule &rule, const TransIdx same_preds, const TransIdx same_succs);
     TransIdx addLearnedRule(const Rule &rule, const TransIdx same_preds, const TransIdx same_succs);
     TransIdx addRule(const Rule &rule, const LocationIdx start);
+    void addNonLinearCHC(const Clause &chc);
     TransIdx addQuery(const BoolExpr &guard, const TransIdx same_preds);
     TransIdx replaceRule(const TransIdx toReplace, const Rule &replacement);
     void removeEdge(const TransIdx from, const TransIdx to);
@@ -105,6 +107,11 @@ public:
     std::set<DG::Edge> refineDependencyGraph(const Implicant &idx);
 
     size_t size() const;
+
+    // COMMENT: now that we are using the CHC naming conventions here I feels a bit weird to 
+    // include the set of non linear CHCs in the ITS.
+    // TODO: dont make this attribute `public`
+    std::list<Clause> nonLinearCHCs;
 
 protected:
 

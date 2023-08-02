@@ -20,7 +20,7 @@ using lit_type = Res<BoolExpr>;
 using assert_type = Clause;
 using query_type = Clause;
 using symbol_type = std::string;
-using tail_type = std::pair<FunApp, BoolExpr>;
+using tail_type = std::pair<std::vector<FunApp>, BoolExpr>;
 using head_type = FunApp;
 using var_or_atom_type = std::variant<BoolVar, FunApp>;
 using boolop_type = BoolOp;
@@ -63,17 +63,35 @@ antlrcpp::Any CHCParseVisitor::visitMain(CHCParser::MainContext *ctx) {
     for (unsigned i = 0; i < max_bool_arity; ++i) {
         bvars.emplace_back(BoolVar::nextProgVar());
     }
+
+    // TEMP: 
+    std::cout << "Linear CHCs: " << std::endl;
+
     for (const Clause &c: clauses) {
+        // TEMP: 
+        std::cout << c << std::endl; 
+
+        // If the clause is non-linear, just add it as-is to the ITS and skip the rest of the loop iteration.
+        if (c.lhs.size() >= 2) {
+            its->addNonLinearCHC(c);
+            continue;
+        } 
+
+        // If the clause is linear, extract the single LHS predicate. Or in case there are zero
+        // LHS predicates, construct a dummy predicate with the initial ITS location as the 
+        // predicate symbol.
+        const FunApp lhs = c.lhs.size() == 1 ? c.lhs[0] : FunApp(its->getInitialLocation(), {});
+            
         Subs ren;
         // replace the arguments of the body predicate with the corresponding program variables
         unsigned bool_arg {0};
         unsigned int_arg {0};
-        for (unsigned i = 0; i < c.lhs.args.size(); ++i) {
-            if (std::holds_alternative<NumVar>(c.lhs.args[i])) {
-                ren.put<IntTheory>(std::get<NumVar>(c.lhs.args[i]), vars[int_arg]);
+        for (unsigned i = 0; i < lhs.args.size(); ++i) {
+            if (std::holds_alternative<NumVar>(lhs.args[i])) {
+                ren.put<IntTheory>(std::get<NumVar>(lhs.args[i]), vars[int_arg]);
                 ++int_arg;
             } else {
-                ren.put<BoolTheory>(std::get<BoolVar>(c.lhs.args[i]), BExpression::buildTheoryLit(BoolLit(bvars[bool_arg])));
+                ren.put<BoolTheory>(std::get<BoolVar>(lhs.args[i]), BExpression::buildTheoryLit(BoolLit(bvars[bool_arg])));
                 ++bool_arg;
             }
         }
@@ -101,6 +119,7 @@ antlrcpp::Any CHCParseVisitor::visitMain(CHCParser::MainContext *ctx) {
         Subs up;
         for (unsigned i = 0; i < c.rhs.args.size(); ++i) {
             if (std::holds_alternative<NumVar>(c.rhs.args[i])) {
+                // NumVar x = ren.get<IntTheory>(std::get<NumVar>(c.rhs.args[i]));
                 up.put<IntTheory>(vars[int_arg], ren.get<IntTheory>(std::get<NumVar>(c.rhs.args[i])));
                 ++int_arg;
             } else if (std::holds_alternative<BoolVar>(c.rhs.args[i])) {
@@ -117,8 +136,8 @@ antlrcpp::Any CHCParseVisitor::visitMain(CHCParser::MainContext *ctx) {
             up.put<BoolTheory>(bvars[i], BExpression::buildTheoryLit(BoolLit(BoolVar::next())));
         }
         up.put(NumVar::loc_var, c.rhs.loc);
-        const BoolExpr guard = c.guard->subs(ren)->simplify() & Rel::buildEq(NumVar::loc_var, c.lhs.loc);
-        its->addRule(Rule(guard, up), c.lhs.loc);
+        const BoolExpr guard = c.guard->subs(ren)->simplify() & Rel::buildEq(NumVar::loc_var, lhs.loc);
+        its->addRule(Rule(guard, up), lhs.loc);
     }
     return its;
 }
@@ -183,18 +202,18 @@ antlrcpp::Any CHCParseVisitor::visitChc_tail(CHCParser::Chc_tailContext *ctx) {
         guards.push_back(r.t);
         guards.insert(guards.end(), r.refinement.begin(), r.refinement.end());
     }
-    std::optional<FunApp> lhs;
+
+    std::vector<FunApp> predicates;
     for (const auto &c: ctx->var_or_atom()) {
         const auto v = any_cast<var_or_atom_type>(visit(c));
         if (std::holds_alternative<BoolVar>(v)) {
             guards.push_back(BExpression::buildTheoryLit(BoolLit(std::get<BoolVar>(v))));
-        } else if (lhs) {
-            throw std::invalid_argument("non-linear clause " + ctx->getText());
         } else {
-            lhs = std::get<FunApp>(v);
+            predicates.push_back(std::get<FunApp>(v));
         }
     }
-    return std::pair(lhs.value_or(FunApp(its->getInitialLocation(), {})), BExpression::buildAnd(guards));
+
+    return std::pair(predicates, BExpression::buildAnd(guards));
 }
 
 antlrcpp::Any CHCParseVisitor::visitChc_query(CHCParser::Chc_queryContext *ctx) {

@@ -122,6 +122,10 @@ TransIdx ITSProblem::addRule(const Rule &rule, const LocationIdx start) {
     return addRule(rule, start, target, preds, succs);
 }
 
+void ITSProblem::addNonLinearCHC(const Clause &chc) {
+    nonLinearCHCs.push_back(chc);
+}
+
 TransIdx ITSProblem::replaceRule(const TransIdx toReplace, const Rule &replacement) {
     const auto idx {&*rules.emplace(replacement).first};
     startAndTargetLocations.emplace(idx, startAndTargetLocations.at(toReplace));

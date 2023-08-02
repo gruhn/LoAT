@@ -113,7 +113,6 @@ antlrcpp::Any CHCParseVisitor::visitMain(CHCParser::MainContext *ctx) {
         Subs up;
         for (unsigned i = 0; i < c.rhs.args.size(); ++i) {
             if (std::holds_alternative<NumVar>(c.rhs.args[i])) {
-                // NumVar x = ren.get<IntTheory>(std::get<NumVar>(c.rhs.args[i]));
                 up.put<IntTheory>(vars[int_arg], ren.get<IntTheory>(std::get<NumVar>(c.rhs.args[i])));
                 ++int_arg;
             } else if (std::holds_alternative<BoolVar>(c.rhs.args[i])) {

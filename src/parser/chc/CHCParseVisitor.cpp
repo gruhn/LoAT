@@ -64,13 +64,7 @@ antlrcpp::Any CHCParseVisitor::visitMain(CHCParser::MainContext *ctx) {
         bvars.emplace_back(BoolVar::nextProgVar());
     }
 
-    // TEMP: 
-    std::cout << "Linear CHCs: " << std::endl;
-
     for (const Clause &c: clauses) {
-        // TEMP: 
-        std::cout << c << std::endl; 
-
         // If the clause is non-linear, just add it as-is to the ITS and skip the rest of the loop iteration.
         if (c.lhs.size() >= 2) {
             its->addNonLinearCHC(c);

@@ -1,4 +1,3 @@
-
 #include "rule.hpp"
 #include "theory.hpp"
 #include "types.hpp"
@@ -20,20 +19,14 @@ struct Clause {
     Clause(const std::vector<FunApp> &lhs, const FunApp &rhs, const BoolExpr &guard): lhs(lhs), rhs(rhs), guard(guard) {}
 };
 
-// TODO
-// const FunApp unify(FunApp fun1, FunApp fun2);
+const std::optional<Var> varAt(const Var &var, const Subs &subs);
 
-const std::optional<std::map<Var, Var>> getUnifier(const FunApp &fun1, const FunApp &fun2);
+const FunApp renameWith(const FunApp &pred, Subs renaming);
 
-const Clause rename(Clause &chc, std::map<Var, Var> renaming);
+const Clause renameWith(const Clause &chc, Subs renaming);
 
-const std::optional<Clause> resolutionWith(Clause &fst, Clause &snd, FunApp &snd_lhs_literal);
+const std::optional<Clause> resolutionWith(const Clause &fst, const Clause &snd, const FunApp &snd_lhs_literal);
 
-const std::optional<Rule> toRule(Clause &chc);
-
-// -----------------------
-
-// const std::optional<std::pair<FunApp, Clause>> extractFromLhs(Clause &c, LocationIdx loc);
 
 std::ostream& operator<<(std::ostream &s, const FunApp &fun_app);
 

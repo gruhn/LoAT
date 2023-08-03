@@ -20,7 +20,7 @@ using lit_type = Res<BoolExpr>;
 using assert_type = Clause;
 using query_type = Clause;
 using symbol_type = std::string;
-using tail_type = std::pair<std::vector<FunApp>, BoolExpr>;
+using tail_type = std::pair<std::set<FunApp>, BoolExpr>;
 using head_type = FunApp;
 using var_or_atom_type = std::variant<BoolVar, FunApp>;
 using boolop_type = BoolOp;
@@ -41,6 +41,35 @@ LocationIdx CHCParseVisitor::loc(const std::string &name) {
     } else {
         return it->second;
     }
+}
+
+/**
+ * TODO docs
+ */
+const FunApp normalizePredicate(unsigned int_var_count, unsigned bool_var_count, const FunApp &pred) {   
+    std::vector<Var> int_args;
+    int_args.reserve(int_var_count);
+    std::vector<Var> bool_args;
+    bool_args.reserve(bool_var_count);
+
+    for (const Var &arg: pred.args) {
+        if (std::holds_alternative<NumVar>(arg)) {
+            int_args.push_back(arg);
+        } else {
+            bool_args.push_back(arg);
+        }
+    }
+
+    while (int_args.size() < int_var_count) {
+        int_args.push_back(NumVar::next());
+    }
+
+    while (bool_args.size() < bool_var_count) {
+        bool_args.push_back(BoolVar::next());
+    }
+
+    int_args.insert(int_args.end(), bool_args.begin(), bool_args.end());
+    return FunApp(pred.loc, int_args);
 }
 
 antlrcpp::Any CHCParseVisitor::visitMain(CHCParser::MainContext *ctx) {
@@ -65,16 +94,27 @@ antlrcpp::Any CHCParseVisitor::visitMain(CHCParser::MainContext *ctx) {
     }
 
     for (const Clause &c: clauses) {
-        // If the clause is non-linear, just add it as-is to the ITS and skip the rest of the loop iteration.
-        if (c.lhs.size() >= 2) {
-            its->addNonLinearCHC(c);
+        if (c.lhs.size() >= 2) { // non-linear clause
+            std::set<FunApp> lhs_normalized;
+
+            for (const FunApp &pred: c.lhs) {
+                const auto pred_normalized = normalizePredicate(vars.size(), bvars.size(), pred);
+                lhs_normalized.insert(pred_normalized);
+            }            
+            
+            its->addNonLinearCHC(Clause(
+                lhs_normalized, 
+                normalizePredicate(vars.size(), bvars.size(), c.rhs),
+                c.guard
+            ));
+
             continue;
         } 
 
         // If the clause is linear, extract the single LHS predicate. Or in case there are zero
         // LHS predicates, construct a dummy predicate with the initial ITS location as the 
         // predicate symbol.
-        const FunApp lhs = c.lhs.size() == 1 ? c.lhs[0] : FunApp(its->getInitialLocation(), {});
+        const FunApp lhs = c.lhs.size() == 1 ? *c.lhs.begin() : FunApp(its->getInitialLocation(), {});
             
         Subs ren;
         // replace the arguments of the body predicate with the corresponding program variables
@@ -196,13 +236,13 @@ antlrcpp::Any CHCParseVisitor::visitChc_tail(CHCParser::Chc_tailContext *ctx) {
         guards.insert(guards.end(), r.refinement.begin(), r.refinement.end());
     }
 
-    std::vector<FunApp> predicates;
+    std::set<FunApp> predicates;
     for (const auto &c: ctx->var_or_atom()) {
         const auto v = any_cast<var_or_atom_type>(visit(c));
         if (std::holds_alternative<BoolVar>(v)) {
             guards.push_back(BExpression::buildTheoryLit(BoolLit(std::get<BoolVar>(v))));
         } else {
-            predicates.push_back(std::get<FunApp>(v));
+            predicates.insert(std::get<FunApp>(v));
         }
     }
 

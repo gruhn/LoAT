@@ -57,16 +57,14 @@ void NonLinearSolver::analyze(ITSProblem &its) {
 
      for (const Clause &non_linear_chc: its.nonLinearCHCs) {
          for (const auto &pred: non_linear_chc.lhs) {
-             const auto resolvent = resolutionWith(linear_chc, non_linear_chc, pred);
-        
-             std::cout << "test10" << std::endl;
+             const auto resolvent = resolutionWith(linear_chc, non_linear_chc, pred);       
 
              if (resolvent.has_value()) {
                  std::cout << " -------------------------------------------- " << std::endl;
-                 std::cout << "Linear CHC     : " << linear_chc << std::endl;
-                 std::cout << "Non Linear CHC : " << non_linear_chc << std::endl;
-                 std::cout << "Predicate      : " << pred << std::endl;
-                 std::cout << "Resolvent      : " << resolvent.value() << std::endl;
+                 std::cout << "Linear CHC     : " << linear_chc                << std::endl;
+                 std::cout << "Non Linear CHC : " << non_linear_chc            << std::endl;
+                 std::cout << "Predicate      : " << pred                      << std::endl;
+                 std::cout << "Resolvent      : " << resolvent.value()         << std::endl;
                  std::cout << " -------------------------------------------- " << std::endl;
              }
           }

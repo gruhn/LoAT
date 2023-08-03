@@ -12,21 +12,23 @@ struct FunApp {
 
 // TODO: convert to class I guess
 struct Clause {
-    const std::vector<FunApp> lhs;
+    const std::set<FunApp> lhs;
     const FunApp rhs;
     const BoolExpr guard;
 
-    Clause(const std::vector<FunApp> &lhs, const FunApp &rhs, const BoolExpr &guard): lhs(lhs), rhs(rhs), guard(guard) {}
+    Clause(const std::set<FunApp> &lhs, const FunApp &rhs, const BoolExpr &guard): lhs(lhs), rhs(rhs), guard(guard) {}
 };
 
 const std::optional<Var> varAt(const Var &var, const Subs &subs);
 
-const FunApp renameWith(const FunApp &pred, Subs renaming);
+const FunApp renameWith(const FunApp &pred, const Subs renaming);
 
-const Clause renameWith(const Clause &chc, Subs renaming);
+const Clause renameWith(const Clause &chc, const Subs renaming);
 
-const std::optional<Clause> resolutionWith(const Clause &fst, const Clause &snd, const FunApp &snd_lhs_literal);
+const std::optional<Clause> resolutionWith(const Clause &fst, const Clause &snd, const FunApp &pred);
 
+// implement comparison operator for FunApp so we can store them in std::set
+bool operator<(const FunApp &fun1, const FunApp &fun2);
 
 std::ostream& operator<<(std::ostream &s, const FunApp &fun_app);
 

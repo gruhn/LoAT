@@ -1,5 +1,6 @@
 #include "clause.hpp"
 #include "expr.hpp"
+#include "theory.hpp"
 #include <stdexcept>
 
 /**
@@ -106,19 +107,15 @@ const FunApp FunApp::renameWith(const Subs &renaming) const {
 }
 
 /**
- * Constructor for a Constrained Horn Clause (CHC). For example:
- * 
- *    F(x1) /\ G(x2,x3) /\ (x1 < x2 /\ x2 < x3)   ==>   H(x1,x2,x3)
- *    
- *    ^^^^^^^^^^^^^^^^^    ^^^^^^^^^^^^^^^^^^^^         ^^^^^^^^^^^
- *           lhs                  guard                     rhs
- *
- * @param lhs - a set of predicates on the left-hand-side (LHS) of the implication.
- * @param rhs - a single predicate on the right-hand-side (RHS) of the implication.
- * @param guard - a boolean expression describing the clause constraint.
+ * Collect set of variables used in predicate arguments.
  */
-Clause::Clause(const std::set<FunApp> &lhs, const FunApp &rhs, const BoolExpr &guard) 
-    : lhs(lhs), rhs(rhs), guard(guard) {}
+const VarSet FunApp::vars() const {
+    VarSet vs;
+    for (const auto &arg: args) {
+        vs.insert(arg);
+    }
+    return vs;
+}
 
 /**
  * Apply `renaming` to all variables in the clause, i.e variables in the guard and the 
@@ -137,15 +134,28 @@ const Clause Clause::renameWith(const Subs &renaming) const {
 }
 
 /**
- * Compute resolution of `fst` and `snd` using the RHS of `fst` and `pred`,
- * which is assumed to be on the LHS of `snd`. So the caller is responsible for
+ * Collect set of variables used in predicate arguments and guard.
+ */
+const VarSet Clause::vars() const {
+    VarSet vs;
+    for (const auto &pred: lhs) {
+        vs.insertAll(pred.vars());
+    }
+    vs.insertAll(rhs.vars());
+    guard->collectVars(vs);
+    return vs;
+}
+
+/**
+ * Compute resolution of `this` and `chc` using the RHS of `this` and `pred`,
+ * which is assumed to be on the LHS of `chc`. So the caller is responsible for
  * choosing the literal to do resolution with. If `pred` is not on the LHS of
- * `snd` we throw an error.
+ * `chc` we throw an error.
  *
  * For example, with
  *
- * 	 fst  : F(x) ==> G(x)
- * 	 snd  : G(y) /\ G(z) /\ y < z ==> H(y,z)
+ * 	 this : F(x) ==> G(x)
+ * 	 chc  : G(y) /\ G(z) /\ y < z ==> H(y,z)
  *   pred : G(z)
  *
  * the returned resolvent should be
@@ -153,39 +163,57 @@ const Clause Clause::renameWith(const Subs &renaming) const {
  * 	 G(y) /\ F(z) /\ y < z ==> H(y,z)
  *
  */
-const std::optional<Clause> resolutionWith(const Clause &fst, const Clause &snd, const FunApp &pred) {
-    if (!snd.lhs.contains(pred)) {
-        throw std::logic_error("Given `pred` is not on the LHS of `snd`");
+const std::optional<Clause> Clause::resolutionWith(const Clause &chc, const FunApp &pred) const {
+    if (!chc.lhs.contains(pred)) {
+        throw std::logic_error("Given `pred` is not on the LHS of `chc`");
     }
 
-    // TODO: make sure variables names are disjoint in both predicates
+    std::set<FunApp> chc_lhs_without_pred = chc.lhs;
+    chc_lhs_without_pred.erase(pred);
 
-    std::set<FunApp> snd_lhs_without_pred = snd.lhs;
-    snd_lhs_without_pred.erase(pred);
+    // Make sure variables in `this` and `chc` are disjoint.
+    Subs renaming;
+    const VarSet this_vars {this->vars()};
+    for (const auto &var: chc.vars()) {
+        if (this_vars.find(var) != this_vars.end()) {
+            if (std::holds_alternative<NumVar>(var)) {
+                renaming.put<IntTheory>(
+                    std::get<NumVar>(var), 
+                    NumVar::next()
+                );
+            } else if (std::holds_alternative<BoolVar>(var)) {
+                renaming.put<BoolTheory>(
+                    std::get<BoolVar>(var), 
+                    BExpression::buildTheoryLit(BoolVar::next())
+                );
+            }
+        }
+    }
+    const Clause this_renamed = this->renameWith(renaming);
 
-    const auto unifier = computeUnifier(fst.rhs, pred);
+    const auto unifier = computeUnifier(this_renamed.rhs, pred);
 
     // If the predicates are not unifiable, we don't throw an error but return
     // nullopt. That way the caller can filter out unifiable predicates using this
     // function. We could throw an error here too, but that implies that we expect
     // the caller to check unifiablility first and implementing that check would
-    // be redundant. On the other hand, choosing a literal from the LHS of `snd`
+    // be redundant. On the other hand, choosing a literal from the LHS of `chc`
     // is trivial, so we make require the caller to do that correctly.
     if (!unifier.has_value()) {
         return {};
     }
 
-    const auto fst_renamed = fst.renameWith(unifier.value());
+    const auto this_unified = this->renameWith(unifier.value());
 
-    // LHS of resolvent is the union of the renamed LHS of `fst` ...
-    std::set<FunApp> resolvent_lhs = fst_renamed.lhs;
-    // ... and the LHS of `snd` where `pred` is removed.
-    resolvent_lhs.insert(snd_lhs_without_pred.begin(), snd_lhs_without_pred.end());
+    // LHS of resolvent is the union of the renamed LHS of `this` ...
+    std::set<FunApp> resolvent_lhs = this_unified.lhs;
+    // ... and the LHS of `chc` where `pred` is removed.
+    resolvent_lhs.insert(chc_lhs_without_pred.begin(), chc_lhs_without_pred.end());
 
     return Clause(
         resolvent_lhs, 
-        snd.rhs, 
-        fst_renamed.guard & snd.guard
+        chc.rhs, 
+        this_renamed.guard & chc.guard
     );
 }
 
@@ -195,6 +223,19 @@ const std::optional<Clause> resolutionWith(const Clause &fst, const Clause &snd,
 bool Clause::isLinear() const {
     return lhs.size() <= 1;
 }
+
+/**
+ * TODO docs
+ */
+const std::optional<Rule> Clause::toRule() const {
+    if (lhs.size() == 1) {
+        const FunApp lhs_pred = lhs.begin();
+        
+    } else {
+        return {};
+    }
+}
+
 
 bool operator<(const FunApp &fun1, const FunApp &fun2) {
     if (fun1.loc < fun2.loc) {

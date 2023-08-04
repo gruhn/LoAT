@@ -61,7 +61,6 @@ public:
     TransIdx addRule(const Rule &rule, const TransIdx same_preds, const TransIdx same_succs);
     TransIdx addLearnedRule(const Rule &rule, const TransIdx same_preds, const TransIdx same_succs);
     TransIdx addRule(const Rule &rule, const LocationIdx start);
-    void addNonLinearCHC(const Clause &chc);
     TransIdx addQuery(const BoolExpr &guard, const TransIdx same_preds);
     TransIdx replaceRule(const TransIdx toReplace, const Rule &replacement);
     void removeEdge(const TransIdx from, const TransIdx to);
@@ -108,10 +107,16 @@ public:
 
     size_t size() const;
 
-    // COMMENT: now that we are using the CHC naming conventions here I feels a bit weird to 
-    // include the set of non linear CHCs in the ITS.
-    // TODO: dont make this attribute `public`
+    // FIXME: these attributes should probably not be "so" public. They should only be initialized
+    // once after parsing and should not be mutated during analysis. But because the ITS instance is constructed 
+    // incrementally, we can't pass these values into the constructor and having public getters+setters
+    // is no different from making the attributes public directly.    
+    std::vector<NumVar> numProgVars;
+    std::vector<BoolVar> boolProgVars;
+
     std::list<Clause> nonLinearCHCs;
+
+    void addClause(const Clause &chc);
 
 protected:
 

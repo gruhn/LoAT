@@ -54,9 +54,9 @@ const Clause NonLinearSolver::clauseFrom(TransIdx trans_idx) const {
 void NonLinearSolver::analyze(ITSProblem &its) {
     const auto solver = NonLinearSolver(its);
 
-    // reachability::Reachability::analyze(its);
+    std::list<Clause> derived_clauses;
 
-    std::cout << "=== Resolution Test ===" << std::endl;
+    // std::cout << "=== Resolution Test ===" << std::endl;
     for (const auto trans_idx : its.getAllTransitions()) {
         const Clause linear_chc = solver.clauseFrom(trans_idx);
 
@@ -64,18 +64,29 @@ void NonLinearSolver::analyze(ITSProblem &its) {
             for (const auto &pred: non_linear_chc.lhs) {
                 const auto resolvent = linear_chc.resolutionWith(non_linear_chc, pred);       
 
-                if (resolvent.has_value() && resolvent.value().isLinear()) {
-                    std::cout << " -------------------------------------------- " << std::endl;
-                    std::cout << "Linear CHC     : " << linear_chc                << std::endl;
-                    std::cout << "Non Linear CHC : " << non_linear_chc            << std::endl;
-                    std::cout << "Predicate      : " << pred                      << std::endl;
-                    std::cout << "Resolvent      : " << resolvent.value()         << std::endl;
-                    std::cout << " -------------------------------------------- " << std::endl;
+                if (resolvent.has_value()) {
+                    // std::cout << " -------------------------------------------- " << std::endl;
+                    // std::cout << "Linear CHC     : " << linear_chc                << std::endl;
+                    // std::cout << "Non Linear CHC : " << non_linear_chc            << std::endl;
+                    // std::cout << "Predicate      : " << pred                      << std::endl;
+                    // std::cout << "Resolvent      : " << resolvent.value()         << std::endl;
+                    // std::cout << " -------------------------------------------- " << std::endl;
 
-                    its.addClause(resolvent.value());
+                    // TODO: check for redundancy
+
+                    derived_clauses.push_back(resolvent.value());
                 }
             }
         }
+    }
+
+    // If we add clauses to the ITS problem *while* looping over the clauses in the ITS problem, 
+    // we also loop over the newly added clauses. This is more of a fixpoint computation. 
+    // QUESTION: would this always terminate? 
+    // I think we don't want this here, so instead we add the derived clauses afterwards. 
+    for (const auto &chc: derived_clauses) {
+        // QUESTION: so do we have to call ITSProblem::refineDependencyGraph() here, if the claues is linear?
+        its.addClause(chc);
     }
 
     reachability::Reachability::analyze(its);   

@@ -289,7 +289,8 @@ const FunApp normalizePredicate(unsigned int_var_count, unsigned bool_var_count,
 }
 
 /**
- * TODO docs
+ * Adds a clause to the ITS problem. If the clause is linear, it's converted to an ITS rule.
+ * If the clause is non-linear it's separately stored in `nonLinearCHCs`.
  */
 void ITSProblem::addClause(const Clause &c) {    
     if (c.isLinear()) {       

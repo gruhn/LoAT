@@ -43,8 +43,6 @@ public:
     const std::optional<Clause> resolutionWith(const Clause &chc, const FunApp &pred) const;
 
     bool isLinear() const;
-
-    const std::optional<Rule> toRule() const;
     
     const VarSet vars() const;
 

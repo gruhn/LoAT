@@ -54,6 +54,8 @@ const Clause NonLinearSolver::clauseFrom(TransIdx trans_idx) const {
 void NonLinearSolver::analyze(ITSProblem &its) {
     const auto solver = NonLinearSolver(its);
 
+    // reachability::Reachability::analyze(its);
+
     std::cout << "=== Resolution Test ===" << std::endl;
     for (const auto trans_idx : its.getAllTransitions()) {
         const Clause linear_chc = solver.clauseFrom(trans_idx);

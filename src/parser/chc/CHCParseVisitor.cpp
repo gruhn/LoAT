@@ -69,7 +69,7 @@ antlrcpp::Any CHCParseVisitor::visitMain(CHCParser::MainContext *ctx) {
     its->boolProgVars = bvars;
 
     for (const Clause &c: clauses) {
-        its->addClause(c, vars, bvars);
+        its->addClause(c);
     }
 
     return its;

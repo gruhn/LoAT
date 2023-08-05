@@ -224,19 +224,6 @@ bool Clause::isLinear() const {
     return lhs.size() <= 1;
 }
 
-/**
- * TODO docs
- */
-const std::optional<Rule> Clause::toRule() const {
-    if (lhs.size() == 1) {
-        const FunApp lhs_pred = lhs.begin();
-        
-    } else {
-        return {};
-    }
-}
-
-
 bool operator<(const FunApp &fun1, const FunApp &fun2) {
     if (fun1.loc < fun2.loc) {
         return true;

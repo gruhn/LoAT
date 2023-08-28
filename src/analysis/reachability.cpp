@@ -109,6 +109,7 @@ ProofFailed::ProofFailed(const std::string &msg): std::runtime_error(msg) {}
 Reachability::Reachability(ITSProblem &chcs):
     chcs(chcs),
     drop(!Config::Analysis::safety())
+    analysis_result(LinearSolver::Result::Pending)
 {
     switch (Config::Analysis::smtSolver) {
     case Config::Analysis::Z3:
@@ -119,6 +120,11 @@ Reachability::Reachability(ITSProblem &chcs):
         break;
     }
     solver->enableModels();
+    proof.majorProofStep("Initial ITS", ITSProof(), chcs);
+    if (Config::Analysis::log) {
+        std::cout << "Initial ITS" << std::endl;
+        ITSExport::printForProof(chcs, std::cout);
+    }
 }
 
 Step::Step(const TransIdx transition, const BoolExpr &sat, const Subs &var_renaming, const Rule &resolvent):
@@ -225,7 +231,8 @@ void Reachability::update_cpx() {
 
 Rule Reachability::compute_resolvent(const TransIdx idx, const BoolExpr &implicant) const {
     static Rule dummy(top(), Subs());
-    if (!Config::Analysis::complexity()) {
+    // do resolvent computation only in incremental mode (i.e. when the problem includes non linear CHCs) or for complexity analysis
+    if (!Config::Analysis::complexity() && chcs.nonLinearCHCs.empty()) {
         return dummy;
     }
     auto resolvent = idx->withGuard(implicant);
@@ -341,6 +348,7 @@ void Reachability::luby_next() {
 
 void Reachability::unsat() {
     const auto res = Config::Analysis::safety() ? "unknown" : (Config::Analysis::reachability() ? "unsat" : "NO");
+    analysis_result = analysis_result_from(res);
     std::cout << res << std::endl << std::endl;
     if (!Config::Analysis::log && Proof::disabled()) {
         return;
@@ -366,6 +374,7 @@ void Reachability::unsat() {
 
 void Reachability::sat() {
     const auto res = Config::Analysis::safety() ? "sat" : "unknown";
+    analysis_result = analysis_result_from(res);
     std::cout << res << std::endl << std::endl;
     if (!Config::Analysis::log && Proof::disabled()) {
         return;
@@ -696,13 +705,26 @@ bool Reachability::try_to_finish() {
     return false;
 }
 
+LinearSolver::Result Reachability::analysis_result_from(std::string res) const {
+    if (res == "sat") {
+        return LinearSolver::Result::Sat;
+    } else if (res == "unsat") {
+        return LinearSolver::Result::Unsat;
+    } else if (res == "unknown") {
+        return LinearSolver::Result::Unknown;
+    } else if (res == "pending") {
+        return LinearSolver::Result::Pending;           
+    } else {
+        throw std::logic_error("undefined analysis result");
+    }       
+}
+
+LinearSolver::Result Reachability::get_analysis_result() const {
+    return analysis_result;
+}
+
 void Reachability::analyze() {
-    static std::default_random_engine rnd {};
-    proof.majorProofStep("Initial ITS", ITSProof(), chcs);
-    if (Config::Analysis::log) {
-        std::cout << "Initial ITS" << std::endl;
-        ITSExport::printForProof(chcs, std::cout);
-    }
+    // TODO: are other preprocessing steps also unsound when in non-linear context? 
     const auto res {Preprocess::preprocess(chcs)};
     if (res) {
         proof.concat(res.getProof());
@@ -716,6 +738,15 @@ void Reachability::analyze() {
         return;
     }
     blocked_clauses[0].clear();
+
+    while (derive_new_fact().has_value());
+
+    std::cout << std::endl;
+}
+
+const std::optional<Clause> Reachability::derive_new_fact() {
+    static std::default_random_engine rnd {};
+
     do {
         size_t next_restart = luby_unit * luby.second;
         std::unique_ptr<LearningState> state;
@@ -740,7 +771,7 @@ void Reachability::analyze() {
                     proof.majorProofStep("Accelerate", (*state->succeeded())->getProof(), chcs);
                     print_state();
                     if ((drop || simple_loop) && try_to_finish()) {
-                        return;
+                        return {};
                     }
                 } else if (state->dropped()) {
                     if (simple_loop && !Config::Analysis::safety()) {
@@ -753,18 +784,13 @@ void Reachability::analyze() {
                     proof.headline("Step with " + std::to_string(trace.back().clause_idx->getId()));
                     print_state();
                     unsat();
-                    return;
+                    return {};
                 }
             }
         }
         if (luby_loop_count == next_restart || (state && state->restart()) || !check_consistency()) {
             if (Config::Analysis::log) std::cout << "restarting after " << luby_loop_count << " loops" << std::endl;
-            // restart
-            while (!trace.empty()) {
-                pop();
-            }
-            luby_next();
-            proof.headline("Restart");
+            restart();
         }
         const auto try_set = trace.empty() ? chcs.getInitialTransitions() : chcs.getSuccessors(trace.back().clause_idx);
         std::vector<TransIdx> to_try(try_set.begin(), try_set.end());
@@ -783,23 +809,80 @@ void Reachability::analyze() {
             }
         }
         if (trace.empty()) {
-            break;
+            // TODO: is this the only place where we break out of the main loop with SAT?
+            proof.headline("Accept");
+            if (Config::Analysis::complexity()) {
+                proof.result(cpx.toString());
+                proof.print();
+            } else {
+                sat();
+            }
+
+            return {};
         } else if (all_failed) {
             backtrack();
             proof.headline("Backtrack");
             print_state();
         } else if (try_to_finish()) { // check whether a query is applicable after every step and, importantly, before acceleration (which might approximate)
-            return;
+            return {};
+        } else {
+            const Step step = trace.back();
+            // TODO is this the only place where we derive a new fact?
+            const auto new_fact_rhs = FunApp(chcs.getRhsLoc(step.clause_idx), chcs.getProgVars());
+            return Clause({}, new_fact_rhs, step.resolvent.getGuard());
         }
     } while (true);
-    proof.headline("Accept");
-    if (Config::Analysis::complexity()) {
-        proof.result(cpx.toString());
-        proof.print();
-    } else {
-        sat();
+}
+
+void Reachability::restart() {
+    while (!trace.empty()) {
+        pop();
     }
-    std::cout << std::endl;
+    luby_next();
+    proof.headline("Restart");
+
+    analysis_result = LinearSolver::Result::Pending;
+}
+
+void Reachability::add_clauses(const std::list<Clause> &clauses) {
+    bool any_linear_clauses = false;
+    for (const auto &chc : clauses) {
+        chcs.addClause(chc);
+        if (chc.isLinear()) {
+            any_linear_clauses = true;
+        }
+    }
+
+    if (any_linear_clauses) {
+        chcs.refineDependencyGraph();
+        // TODO: are other preprocessing steps also unsound when in non-linear context? 
+        const auto res {Preprocess::preprocess(chcs)};
+        if (res) {
+            proof.concat(res.getProof());
+            if (Config::Analysis::log) {
+                std::cout << "Simplified ITS" << std::endl;
+                ITSExport::printForProof(chcs, std::cout);
+            }
+        }
+        init();
+
+        // When we add a new linear clause we have to restart the solver,
+        // i.e. reset the trace, otherwise we might block a potential reachability path.
+        restart();
+    }
+}
+
+const std::list<Clause> Reachability::get_facts() const {     
+    std::list<Clause> facts;    
+    for (const auto trans_idx : chcs.getInitialTransitions()) {
+        const Clause fact = chcs.clauseFrom(trans_idx);
+        facts.push_back(fact);
+    }
+    return facts;
+}
+
+const std::list<Clause> Reachability::get_non_linear_chcs() const {
+    return chcs.nonLinearCHCs;
 }
 
 void Reachability::analyze(ITSProblem &its) {

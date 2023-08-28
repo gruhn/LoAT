@@ -68,11 +68,15 @@ const std::optional<Subs> computeUnifier(const FunApp &pred1, const FunApp &pred
 
             if (both_nums) {
                 subs.put(
-                std::make_pair(std::get<NumVar>(var1), std::get<NumVar>(var2)));
+                std::make_pair(
+                    std::get<NumVar>(var1), 
+                    std::get<NumVar>(var2))
+                );
             } else if (both_bools) {
                 subs.put(std::make_pair(
-                std::get<BoolVar>(var1),
-                BExpression::buildTheoryLit(std::get<BoolVar>(var2))));
+                    std::get<BoolVar>(var1),
+                    BExpression::buildTheoryLit(std::get<BoolVar>(var2)))
+                );
             } else {
                 // argument types don't match ==> not unifiable
                 return {};
@@ -123,14 +127,14 @@ const VarSet FunApp::vars() const {
  * maps to compound expressions 
  */
 const Clause Clause::renameWith(const Subs &renaming) const {
-  std::set<FunApp> lhs_renamed;
-  for (const FunApp &pred : lhs) {
-    lhs_renamed.insert(pred.renameWith(renaming));
-  }
+    std::set<FunApp> lhs_renamed;
+    for (const FunApp &pred : lhs) {
+        lhs_renamed.insert(pred.renameWith(renaming));
+    }
 
-  const FunApp rhs_renamed = rhs.renameWith(renaming);
-  const auto guard_renamed = guard->subs(renaming);
-  return Clause(lhs_renamed, rhs_renamed, guard_renamed);
+    const FunApp rhs_renamed = rhs.renameWith(renaming);
+    const auto guard_renamed = guard->subs(renaming);
+    return Clause(lhs_renamed, rhs_renamed, guard_renamed);
 }
 
 /**
@@ -189,21 +193,21 @@ const std::optional<Clause> Clause::resolutionWith(const Clause &chc, const FunA
             }
         }
     }
-    const Clause this_renamed = this->renameWith(renaming);
+    const Clause this_with_disjoint_vars = this->renameWith(renaming);
 
-    const auto unifier = computeUnifier(this_renamed.rhs, pred);
+    const auto unifier = computeUnifier(this_with_disjoint_vars.rhs, pred);
 
     // If the predicates are not unifiable, we don't throw an error but return
     // nullopt. That way the caller can filter out unifiable predicates using this
     // function. We could throw an error here too, but that implies that we expect
     // the caller to check unifiablility first and implementing that check would
     // be redundant. On the other hand, choosing a literal from the LHS of `chc`
-    // is trivial, so we make require the caller to do that correctly.
+    // is trivial, so we require the caller to do that correctly.
     if (!unifier.has_value()) {
         return {};
     }
 
-    const auto this_unified = this->renameWith(unifier.value());
+    const Clause this_unified = this->renameWith(unifier.value());
 
     // LHS of resolvent is the union of the renamed LHS of `this` ...
     std::set<FunApp> resolvent_lhs = this_unified.lhs;
@@ -213,7 +217,7 @@ const std::optional<Clause> Clause::resolutionWith(const Clause &chc, const FunA
     return Clause(
         resolvent_lhs, 
         chc.rhs, 
-        this_renamed.guard & chc.guard
+        this_unified.guard & chc.guard
     );
 }
 

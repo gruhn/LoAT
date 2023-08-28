@@ -1,93 +1,57 @@
-#include "reachability.hpp"
 #include "nonlinear.hpp"
 #include "booltheory.hpp"
+#include "linearsolver.hpp"
+#include <stdexcept>
 
-bool isLocVar(const Var &var) {
-    if (std::holds_alternative<NumVar>(var)) {
-        return std::get<NumVar>(var) == NumVar::loc_var;
-    } else {
-        return false;
-    }
-}
+void NonLinearSolver::analyze(ILinearSolver &linear_solver) {
+    std::stack<Clause, std::list<Clause>> facts(linear_solver.get_facts());    
 
-const std::vector<Var> getProgVarsOrdered(const ITSProblem &its) {
-    std::vector<Var> prog_vars;
-    prog_vars.reserve(its.numProgVars.size() + its.boolProgVars.size());
+    while (true) {
+        // std::cout << "================" << std::endl;
+        std::list<Clause> resolvents;
 
-    for (const auto &var: its.numProgVars) {
-        prog_vars.push_back(var);
-    }
+        // Do resolution with of all `facts` with all non-linear clauses with the goal to derive
+        // new linear clauses that the linear solver can handle.        
+        while (!facts.empty()) {
+            const Clause fact = facts.top();
+            facts.pop();
 
-    for (const auto &var: its.boolProgVars) {
-        prog_vars.push_back(var);
-    }
+            // Note, we don't add resolvents to the ITS during this loop but instead collect on a stack,
+            // and then add the contained clauses to the ITS afterwards in a dedicated loop. 
+            // Otherwise, the following for-loop is "dynamically extended" because we also loop 
+            // over the newly added clauses.
+            for (const Clause &non_linear_chc: linear_solver.get_non_linear_chcs()) {
+                for (const auto &pred: non_linear_chc.lhs) {
+                    const auto optional_resolvent = fact.resolutionWith(non_linear_chc, pred);
 
-    return prog_vars;
-}
-
-NonLinearSolver::NonLinearSolver(const ITSProblem &its)
-    : its(its), progVarsOrdered(getProgVarsOrdered(its)) {}
-
-/** 
- * Converts an ITS rule (identified by a TransIdx) back to CHC representation.
- * This does not restore the original representation after parsing perfectly,
- * since number and order of predicate arguments is lost.
- */
-const Clause NonLinearSolver::clauseFrom(TransIdx trans_idx) const {
-  const Rule rule = its.getRule(trans_idx);
-  const auto guard = rule.getGuard();
-
-  const LocationIdx lhs_loc = its.getLhsLoc(trans_idx);
-  const LocationIdx rhs_loc = its.getRhsLoc(trans_idx);
-
-  const auto rhs = FunApp(rhs_loc, progVarsOrdered).renameWith(rule.getUpdate());
-
-  if (lhs_loc == its.getInitialLocation()) {     
-    // rule is a linear CHC with no LHS predicates, ie a "fact"
-    return Clause({}, rhs, guard);
-  } else {
-    // rule is a linear CHC with exactly one LHS predicates, ie a "rule"
-    return Clause({ FunApp(lhs_loc, progVarsOrdered) }, rhs, guard);  
-  }
-};
-
-void NonLinearSolver::analyze(ITSProblem &its) {
-    const auto solver = NonLinearSolver(its);
-
-    std::list<Clause> derived_clauses;
-
-    // std::cout << "=== Resolution Test ===" << std::endl;
-    for (const auto trans_idx : its.getAllTransitions()) {
-        const Clause linear_chc = solver.clauseFrom(trans_idx);
-
-        for (const Clause &non_linear_chc: its.nonLinearCHCs) {
-            for (const auto &pred: non_linear_chc.lhs) {
-                const auto resolvent = linear_chc.resolutionWith(non_linear_chc, pred);       
-
-                if (resolvent.has_value()) {
-                    // std::cout << " -------------------------------------------- " << std::endl;
-                    // std::cout << "Linear CHC     : " << linear_chc                << std::endl;
-                    // std::cout << "Non Linear CHC : " << non_linear_chc            << std::endl;
-                    // std::cout << "Predicate      : " << pred                      << std::endl;
-                    // std::cout << "Resolvent      : " << resolvent.value()         << std::endl;
-                    // std::cout << " -------------------------------------------- " << std::endl;
-
-                    // TODO: check for redundancy
-
-                    derived_clauses.push_back(resolvent.value());
+                    if (optional_resolvent.has_value()) {
+                        const auto resolvent = optional_resolvent.value();
+                        // TODO: check for redundancy
+                        resolvents.push_back(resolvent);
+                    }
                 }
             }
         }
-    }
 
-    // If we add clauses to the ITS problem *while* looping over the clauses in the ITS problem, 
-    // we also loop over the newly added clauses. This is more of a fixpoint computation. 
-    // QUESTION: would this always terminate? 
-    // I think we don't want this here, so instead we add the derived clauses afterwards. 
-    for (const auto &chc: derived_clauses) {
-        // QUESTION: so do we have to call ITSProblem::refineDependencyGraph() here, if the claues is linear?
-        its.addClause(chc);
-    }
+        linear_solver.add_clauses(resolvents);
+       
+        // ...
+        while (true) {
+            const auto new_fact = linear_solver.derive_new_fact();
+            // TOOD: why do I get redundant facts here?
+            if (new_fact.has_value()) {
+                // std::cout << "New Fact: " << new_fact.value() << std::endl;
+                facts.push(new_fact.value());
+            } else {
+                break;
+            }
+        }
 
-    reachability::Reachability::analyze(its);   
+        const auto result = linear_solver.get_analysis_result();     
+        if (result == LinearSolver::Result::Unsat) {
+            break;
+        } else if ((result == LinearSolver::Result::Sat || result == LinearSolver::Result::Unknown) && facts.empty()) {
+            break;
+        }
+    } 
 }

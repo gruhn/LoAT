@@ -259,6 +259,43 @@ size_t ITSProblem::size() const {
     return graph.size();
 }
 
+const std::vector<Var> ITSProblem::getProgVars() const {
+    std::vector<Var> prog_vars;
+    prog_vars.reserve(numProgVars.size() + boolProgVars.size());
+    for (const auto &var: numProgVars) {
+        prog_vars.push_back(var);
+    }
+    for (const auto &var: boolProgVars) {
+        prog_vars.push_back(var);
+    }
+    return prog_vars;
+}
+
+/** 
+ * Converts an ITS rule (identified by a TransIdx) back to CHC representation.
+ * This does not restore the original representation after parsing perfectly,
+ * since number and order of predicate arguments is lost.
+ */
+const Clause ITSProblem::clauseFrom(TransIdx trans_idx) const {
+    const auto prog_vars = getProgVars();
+
+    const Rule rule = getRule(trans_idx);
+    const auto guard = rule.getGuard();
+
+    const LocationIdx lhs_loc = getLhsLoc(trans_idx);
+    const LocationIdx rhs_loc = getRhsLoc(trans_idx);
+
+    const auto rhs = FunApp(rhs_loc, prog_vars).renameWith(rule.getUpdate());
+
+    if (lhs_loc == getInitialLocation()) {     
+        // rule is a linear CHC with no LHS predicates, ie a "fact"
+        return Clause({}, rhs, guard);
+    } else {
+        // rule is a linear CHC with exactly one LHS predicates, ie a "rule"
+        return Clause({ FunApp(lhs_loc, prog_vars) }, rhs, guard);  
+    }
+}
+
 /**
  * TODO docs
  */

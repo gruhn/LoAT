@@ -349,7 +349,6 @@ void Reachability::luby_next() {
 void Reachability::unsat() {
     const auto res = Config::Analysis::safety() ? "unknown" : (Config::Analysis::reachability() ? "unsat" : "NO");
     analysis_result = analysis_result_from(res);
-    std::cout << res << std::endl << std::endl;
     if (!Config::Analysis::log && Proof::disabled()) {
         return;
     }
@@ -375,7 +374,6 @@ void Reachability::unsat() {
 void Reachability::sat() {
     const auto res = Config::Analysis::safety() ? "sat" : "unknown";
     analysis_result = analysis_result_from(res);
-    std::cout << res << std::endl << std::endl;
     if (!Config::Analysis::log && Proof::disabled()) {
         return;
     }
@@ -734,14 +732,27 @@ void Reachability::analyze() {
         }
     }
     init();
-    if (try_to_finish()) {
-        return;
+
+    if (!try_to_finish()) {
+        blocked_clauses[0].clear();
+        while (derive_new_fact().has_value());
     }
-    blocked_clauses[0].clear();
 
-    while (derive_new_fact().has_value());
+    switch (get_analysis_result()) {
+        case LinearSolver::Result::Sat:
+            std::cout << "sat";
+            break;
+        case LinearSolver::Result::Unsat:
+            std::cout << "unsat";
+            break;
+        case LinearSolver::Result::Unknown:
+            std::cout << "unknown";
+            break;
+        case LinearSolver::Result::Pending:
+            throw std::logic_error("exited main loop although analysis result is pending");
+    }
 
-    std::cout << std::endl;
+    std::cout << std::endl << std::endl << std::endl;
 }
 
 const std::optional<Clause> Reachability::derive_new_fact() {

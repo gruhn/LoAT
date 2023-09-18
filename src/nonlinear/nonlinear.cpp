@@ -28,6 +28,10 @@ void NonLinearSolver::analyze(ILinearSolver &linear_solver) {
                         const auto resolvent = optional_resolvent.value();
                         // TODO: check for redundancy
                         resolvents.push_back(resolvent);
+
+                        if (resolvent.isLinear()) {
+                            // std::cout << "New Rule: (...)" << std::endl;
+                        }
                     }
                 }
             }
@@ -53,5 +57,19 @@ void NonLinearSolver::analyze(ILinearSolver &linear_solver) {
         } else if ((result == LinearSolver::Result::Sat || result == LinearSolver::Result::Unknown) && facts.empty()) {
             break;
         }
-    } 
+    }
+
+    switch (linear_solver.get_analysis_result()) {
+        case LinearSolver::Result::Sat:
+            std::cout << "sat" << std::endl;
+            break;
+        case LinearSolver::Result::Unsat:
+            std::cout << "unsat" << std::endl;
+            break;
+        case LinearSolver::Result::Unknown:
+            std::cout << "unknown" << std::endl;
+            break;
+        case LinearSolver::Result::Pending:
+            throw std::logic_error("exited main loop, although linear solver is still pending");
+    }
 }

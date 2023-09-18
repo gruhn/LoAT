@@ -60,7 +60,7 @@
 059 timeout 
 060 unsat 
 061 timeout 
-062 unknown 
+062 unsat
 063 unknown 
 064 timeout 
 065 timeout 

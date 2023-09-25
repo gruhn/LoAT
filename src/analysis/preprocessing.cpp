@@ -34,7 +34,7 @@ ResultViaSideEffects remove_irrelevant_clauses(ITSProblem &its, bool forward) {
     if (its.getSinkTransitions().size() == 0) {
         throw std::logic_error("remove_irrelevant_clauses: ITS has no sink transitions");
     }
-
+ 
     std::set<TransIdx> keep;
     std::stack<TransIdx> todo;
     for (const auto x: forward ? its.getInitialTransitions() : its.getSinkTransitions()) {
@@ -50,10 +50,10 @@ ResultViaSideEffects remove_irrelevant_clauses(ITSProblem &its, bool forward) {
             }
         }
     } while (!todo.empty());
-    std::vector<LocationIdx> to_delete;
-    for (const auto idx: its.getAllTransitions()) {
-        if (keep.find(idx) == keep.end()) {
-            to_delete.push_back(idx);
+    std::vector<TransIdx> to_delete;
+    for (const auto &r: its.getAllTransitions()) {
+        if (keep.find(&r) == keep.end()) {
+            to_delete.push_back(&r);
         }
     }
     std::set<TransIdx> deleted;

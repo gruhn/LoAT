@@ -92,7 +92,7 @@
 091 unknown 
 092 unknown 
 093 unknown 
-094 unknown 
+094 unsat 
 095 unknown 
 096 unsat 
 097 unsat 
@@ -131,13 +131,13 @@
 130 unknown 
 131 timeout 
 132 unknown 
-133 timeout 
+133 unknown 
 134 unknown 
 135 unknown 
 136 unknown 
 137 unknown 
 138 unknown 
-139 timeout 
+139 unknown
 140 unknown 
 141 unknown 
 142 unknown 
@@ -229,7 +229,7 @@
 228 unknown 
 229 timeout 
 230 unknown 
-231 timeout 
+231 unknown 
 232 unknown 
 233 timeout 
 234 unknown 
@@ -242,7 +242,7 @@
 241 unknown 
 242 unknown 
 243 unknown 
-244 timeout 
+244 unknown 
 245 unknown 
 246 unknown 
 247 unknown 

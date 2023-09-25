@@ -17,6 +17,7 @@
 
 #include "itsproblem.hpp"
 #include "export.hpp"
+#include "expr.hpp"
 #include "smtfactory.hpp"
 #include "chain.hpp"
 
@@ -276,16 +277,15 @@ const std::vector<Var> ITSProblem::getProgVars() const {
  * This does not restore the original representation after parsing perfectly,
  * since number and order of predicate arguments is lost.
  */
-const Clause ITSProblem::clauseFrom(TransIdx trans_idx) const {
+const Clause ITSProblem::clauseFrom(TransIdx rule) const {
     const auto prog_vars = getProgVars();
 
-    const Rule rule = getRule(trans_idx);
-    const auto guard = rule.getGuard();
+    const auto guard = rule->getGuard();
 
-    const LocationIdx lhs_loc = getLhsLoc(trans_idx);
-    const LocationIdx rhs_loc = getRhsLoc(trans_idx);
+    const LocationIdx lhs_loc = getLhsLoc(rule);
+    const LocationIdx rhs_loc = getRhsLoc(rule);
 
-    const auto rhs = FunApp(rhs_loc, prog_vars).renameWith(rule.getUpdate());
+    const auto rhs = FunApp(rhs_loc, prog_vars).renameWith(rule->getUpdate());
 
     if (lhs_loc == getInitialLocation()) {     
         // rule is a linear CHC with no LHS predicates, ie a "fact"
@@ -342,10 +342,16 @@ void ITSProblem::addClause(const Clause &c) {
         unsigned int_arg {0};
         for (unsigned i = 0; i < lhs.args.size(); ++i) {
             if (std::holds_alternative<NumVar>(lhs.args[i])) {
-                ren.put<IntTheory>(std::get<NumVar>(lhs.args[i]), numProgVars[int_arg]);
+                ren.put<IntTheory>(
+                    std::get<NumVar>(lhs.args[i]), 
+                    numProgVars[int_arg]
+                );
                 ++int_arg;
             } else {
-                ren.put<BoolTheory>(std::get<BoolVar>(lhs.args[i]), BExpression::buildTheoryLit(boolProgVars[bool_arg]));
+                ren.put<BoolTheory>(
+                    std::get<BoolVar>(lhs.args[i]), 
+                    std::get<BoolExpr>(expr::toExpr(boolProgVars[bool_arg]))
+                );
                 ++bool_arg;
             }
         }
@@ -357,15 +363,7 @@ void ITSProblem::addClause(const Clause &c) {
         // replace all other variables from the clause with temporary variables
         for (const auto &x: cVars) {
             if (!ren.contains(x)) {
-                if (std::holds_alternative<NumVar>(x)) {
-                    const auto &var = std::get<NumVar>(x);
-                    ren.put<IntTheory>(var, NumVar::next());
-                } else if (std::holds_alternative<BoolVar>(x)) {
-                    const auto &var = std::get<BoolVar>(x);
-                    ren.put<BoolTheory>(var, BExpression::buildTheoryLit(BoolVar::next()));
-                } else {
-                    throw std::logic_error("unsupported theory in CHCParseVisitor");
-                }
+                ren.put(x, expr::toExpr(expr::next(x)));
             }
         }
         bool_arg = 0;
@@ -386,7 +384,7 @@ void ITSProblem::addClause(const Clause &c) {
             up.put<IntTheory>(numProgVars[i], NumVar::next());
         }
         for (unsigned i = bool_arg; i < boolProgVars.size(); ++i) {
-            up.put<BoolTheory>(boolProgVars[i], BExpression::buildTheoryLit(BoolVar::next()));
+            up.put<BoolTheory>(boolProgVars[i], std::get<BoolExpr>(expr::toExpr(BoolVar::next())));
         }
         up.put(NumVar::loc_var, c.rhs.loc);
         const BoolExpr guard = c.guard->subs(ren)->simplify() & Rel::buildEq(NumVar::loc_var, lhs.loc);

@@ -1,37 +1,26 @@
 #include "clause.hpp"
+#include "boolexpr.hpp"
 #include "expr.hpp"
 #include "theory.hpp"
 #include <stdexcept>
+#include <utility>
 
 /**
  * TODO docs
  */
-const std::optional<Var> varAt(const Var &var, const Subs &subs) {
-    if (!subs.contains(var)) {
-        return {};
-    } else if (std::holds_alternative<NumVar>(var)) {
-        const NumVar num_var = std::get<NumVar>(var);
-        const Expr num_expr = subs.get<IntTheory>().get(num_var);
-
-        if (num_expr.isVar()) {
-            return num_expr.toVar();
-        } else {
-            throw std::logic_error("Substitution contains non-variable expression");
-        }
-    } else if (std::holds_alternative<BoolVar>(var)) {
-        const BoolVar bool_var = std::get<BoolVar>(var);
-        const BoolExpr bool_expr = subs.get<BoolTheory>().get(bool_var);
-
-        // TODO: is there a simpler way to restore a BoolVar from a BoolExpr?
-        const auto bool_expr_vars = bool_expr->vars();
-        if (bool_expr_vars.size() == 1) {
-            const BoolVar target_var = std::get<BoolVar>(*bool_expr_vars.begin());
-            return target_var;
-        } else {
-            throw std::logic_error("Substitution contains non-variable expression");
-        }
+const Var varAt(const Var &var, const Subs &subs) {
+    auto it = subs.find(var);
+    
+    if (it == subs.end()) {
+        return var;
     } else {
-        throw std::logic_error("unsupported theory");
+        const auto optional_var = expr::toVar(expr::second(*it));
+
+        if (optional_var.has_value()) {
+            return optional_var.value();
+        } else {
+            throw std::logic_error("Renaming contains non-variable expression");
+        }
     }
 }
 
@@ -67,16 +56,15 @@ const std::optional<Subs> computeUnifier(const FunApp &pred1, const FunApp &pred
                             std::holds_alternative<BoolVar>(var2);
 
             if (both_nums) {
-                subs.put(
-                std::make_pair(
+                subs.put(std::make_pair(
                     std::get<NumVar>(var1), 
-                    std::get<NumVar>(var2))
-                );
+                    std::get<Expr>(expr::toExpr(var2))
+                ));
             } else if (both_bools) {
                 subs.put(std::make_pair(
                     std::get<BoolVar>(var1),
-                    BExpression::buildTheoryLit(std::get<BoolVar>(var2)))
-                );
+                    std::get<BoolExpr>(expr::toExpr(var2))
+                ));
             } else {
                 // argument types don't match ==> not unifiable
                 return {};
@@ -99,12 +87,7 @@ const FunApp FunApp::renameWith(const Subs &renaming) const {
 
   for (const Var &var : args) {
     const auto target_var = varAt(var, renaming);
-
-    if (target_var.has_value()) {
-      args_renamed.push_back(target_var.value());
-    } else {
-      args_renamed.push_back(var);
-    }
+    args_renamed.push_back(target_var);
   }
 
   return FunApp(loc, args_renamed);
@@ -180,17 +163,7 @@ const std::optional<Clause> Clause::resolutionWith(const Clause &chc, const FunA
     const VarSet this_vars {this->vars()};
     for (const auto &var: chc.vars()) {
         if (this_vars.find(var) != this_vars.end()) {
-            if (std::holds_alternative<NumVar>(var)) {
-                renaming.put<IntTheory>(
-                    std::get<NumVar>(var), 
-                    NumVar::next()
-                );
-            } else if (std::holds_alternative<BoolVar>(var)) {
-                renaming.put<BoolTheory>(
-                    std::get<BoolVar>(var), 
-                    BExpression::buildTheoryLit(BoolVar::next())
-                );
-            }
+            renaming.put(var, expr::toExpr(expr::next(var)));
         }
     }
     const Clause this_with_disjoint_vars = this->renameWith(renaming);

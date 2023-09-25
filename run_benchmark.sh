@@ -7,25 +7,31 @@ set -e
 pushd $(dirname ${BASH_SOURCE[0]})
 
 cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
-# cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build
 
-# # gdb --args \
-# ./build/loat-static \
-#   --mode reachability \
-#   --format horn \
-#   --proof-level 0 \
-#   "../chc-comp22-benchmarks/LIA-Lin/chc-LIA-Lin_064.smt2"
-#   # "../chc-comp22-benchmarks/LIA/chc-LIA_063.smt2"
-#   # --log \
+# debug: 009
+
+# pushd build
+# make -j4
+# popd
+
+
+# gdb --args \
+#   ./build/loat-static \
+#     --mode reachability \
+#     --format horn \
+#     --proof-level 0 \
+#     "../chc-comp22-benchmarks/LIA/chc-LIA_060.smt2"
+# # # #   # "../chc-comp22-benchmarks/LIA/chc-LIA_999.smt2"
+# # # #   # --log \
 
 # popd
 # exit
 
-benchmark="LIA-Lin"
+benchmark="LIA"
 # benchmark="LIA"
 # compare_with="z3"
-compare_with="adcl"
+compare_with="z3"
 
 while IFS= read -r line
 do
@@ -36,10 +42,10 @@ do
     read idx prev_result <<< "$line"
     file="../chc-comp22-benchmarks/${benchmark}/chc-${benchmark}_${idx}.smt2"
 
-    # if [[ "$prev_result" == "unsat" ]]; then
+    # if [[ "$prev_result" != "timeout" ]]; then
 
       set +e
-      result=$(timeout 3 ./build/loat-static --mode reachability --format horn --proof-level 0 "$file")
+      result=$(timeout 5 ./build/loat-static --mode reachability --format horn --proof-level 0 "$file")
       # result=$(timeout 10 z3 "$file")
       exit_status=$?
       set -e
@@ -59,7 +65,7 @@ do
         printf "$idx $prev_result --> $result \n"
       fi
 
-    # fi
+    #fi
   fi
 done < "./benchmarks/${benchmark}_${compare_with}.txt"
 

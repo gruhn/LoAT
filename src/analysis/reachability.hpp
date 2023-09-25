@@ -305,17 +305,23 @@ class Reachability : public ILinearSolver {
 
     LinearSolver::Result analysis_result_from(std::string res) const;
 
+    const bool incremental_mode;
+
+    std::set<std::vector<std::pair<TransIdx, BoolExpr>>> seen_traces;
+
+    const std::optional<Clause> trace_as_fact();
+
 public:
 
-    Reachability(ITSProblem &its);
+    Reachability(ITSProblem &chcs, bool incremental_mode);
 
     LinearSolver::Result get_analysis_result() const override;
 
     void add_clauses(const std::list<Clause> &chc) override;
 
-    const std::optional<Clause> derive_new_fact() override;
+    const std::list<Clause> derive_new_facts() override;
 
-    const std::list<Clause> get_facts() const override;
+    const std::list<Clause> get_initial_facts() const override;
 
     const std::list<Clause> get_non_linear_chcs() const override;
 

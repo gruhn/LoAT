@@ -106,10 +106,11 @@ ITSProof* ProvedUnsat::operator->() {
 
 ProofFailed::ProofFailed(const std::string &msg): std::runtime_error(msg) {}
 
-Reachability::Reachability(ITSProblem &chcs):
+Reachability::Reachability(ITSProblem &chcs, bool incremental_mode):
     chcs(chcs),
-    drop(!Config::Analysis::safety())
-    analysis_result(LinearSolver::Result::Pending)
+    drop(!Config::Analysis::safety()),
+    analysis_result(LinearSolver::Result::Pending),
+    incremental_mode(incremental_mode)
 {
     switch (Config::Analysis::smtSolver) {
     case Config::Analysis::Z3:
@@ -231,15 +232,18 @@ void Reachability::update_cpx() {
 
 Rule Reachability::compute_resolvent(const TransIdx idx, const BoolExpr &implicant) const {
     static Rule dummy(top(), Subs());
-    // do resolvent computation only in incremental mode (i.e. when the problem includes non linear CHCs) or for complexity analysis
-    if (!Config::Analysis::complexity() && chcs.nonLinearCHCs.empty()) {
+
+    // Resolvent only has to be computed in incremental mode (i.e. when the problem includes non linear CHCs) or 
+    // for complexity analysis. Otherwise we can skip it.
+    if (Config::Analysis::complexity() || incremental_mode) {
+        auto resolvent = idx->withGuard(implicant);
+        if (!trace.empty()) {
+            resolvent = Chaining::chain(trace.back().resolvent, resolvent).first;
+        }
+        return *Preprocess::preprocessRule(resolvent);
+    } else {
         return dummy;
     }
-    auto resolvent = idx->withGuard(implicant);
-    if (!trace.empty()) {
-        resolvent = Chaining::chain(trace.back().resolvent, resolvent).first;
-    }
-    return *Preprocess::preprocessRule(resolvent);
 }
 
 bool Reachability::store_step(const TransIdx idx, const Rule &implicant, bool force) {
@@ -735,7 +739,7 @@ void Reachability::analyze() {
 
     if (!try_to_finish()) {
         blocked_clauses[0].clear();
-        while (derive_new_fact().has_value());
+        derive_new_facts();
     }
 
     switch (get_analysis_result()) {
@@ -755,14 +759,66 @@ void Reachability::analyze() {
     std::cout << std::endl << std::endl << std::endl;
 }
 
-const std::optional<Clause> Reachability::derive_new_fact() {
+/**
+ * The resolvent of the entire current trace represents a fact,
+ * that can be converted into a `Clause`. If the trace is empty,
+ * this function returns nullopt.
+ */
+const std::optional<Clause> Reachability::trace_as_fact() {
+    if (!incremental_mode) {
+        // In non-incremental mode the trace resolvent is not really computed and only a dummy expression.
+        // See `compute_resolvent` above. So `trace_as_fact` will silently return nonsense.
+        throw std::logic_error("Calling `trace_as_fact` in non-incremental mode doesn't make sense.");
+    }
+
+    if (trace.empty()) {
+        return {};
+    } else {
+        const Step step = trace.back();
+
+        std::vector<BoolExpr> guard_conj = { step.resolvent.getGuard() };
+        std::vector<Var> args_renamed;
+        const auto subs = step.resolvent.getUpdate();
+
+        for (const Var &var : chcs.getProgVars()) {
+            auto it = subs.find(var);
+
+            if (it == subs.end()) {
+                args_renamed.push_back(var);
+            } else {
+                const auto optional_var = expr::toVar(expr::second(*it));
+
+                if (optional_var.has_value()) {
+                    args_renamed.push_back(optional_var.value());
+                } else {
+                    const auto new_var = expr::next(var);
+                    args_renamed.push_back(new_var);
+                    guard_conj.push_back(expr::mkEq(expr::toExpr(new_var), subs.get(var)));
+                }
+            }                   
+        }
+
+        const auto guard = BExpression::buildAnd(guard_conj);
+        const auto rhs = FunApp(chcs.getRhsLoc(step.clause_idx), args_renamed);
+        return Clause({}, rhs, guard);
+    }
+}
+
+const std::list<Clause> Reachability::derive_new_facts() {
     static std::default_random_engine rnd {};
 
-    do {
+    std::list<Clause> derived_facts;
+
+    while (true) {
         size_t next_restart = luby_unit * luby.second;
         std::unique_ptr<LearningState> state;
         if (Config::Analysis::log) std::cout << "trace: " << trace << std::endl;
         if (!trace.empty()) {
+            // true by default, because if no case in the following for-loop applies, then we still want to add a new fact,
+            // because we have a non-empty unseen trace.
+            bool should_add_fact = true;
+
+            // QUESTION: why not exit loop after frist matching case?
             for (auto backlink = has_looping_suffix(trace.size() - 1);
                  backlink && luby_loop_count < next_restart;
                  backlink = has_looping_suffix(*backlink - 1)) {
@@ -775,6 +831,8 @@ const std::optional<Clause> Reachability::derive_new_fact() {
                     backtrack();
                     proof.headline("Covered");
                     print_state();
+                    // if we run into `covered` we don't add a new fact, because backtrack to previously seen facts.
+                    should_add_fact = false;
                 } else if (state->succeeded()) {
                     if (simple_loop) {
                         block(step);
@@ -782,22 +840,47 @@ const std::optional<Clause> Reachability::derive_new_fact() {
                     proof.majorProofStep("Accelerate", (*state->succeeded())->getProof(), chcs);
                     print_state();
                     if ((drop || simple_loop) && try_to_finish()) {
-                        return {};
+                        return derived_facts;
                     }
+
+                    // if we just applied acceleration successfully, then the trace contains a new (more general) fact.
+                    should_add_fact = true;
                 } else if (state->dropped()) {
                     if (simple_loop && !Config::Analysis::safety()) {
                         block(step);
                     }
                     proof.majorProofStep("Accelerate and Drop", state->dropped()->get_proof(), chcs);
                     print_state();
+                    // QUESTION: why shouldn't we add a fact in this case again?
+                    should_add_fact = false;
                 } else if (state->unsat()) {
                     proof.majorProofStep("Nonterm", **state->unsat(), chcs);
                     proof.headline("Step with " + std::to_string(trace.back().clause_idx->getId()));
                     print_state();
                     unsat();
-                    return {};
+                    return derived_facts;
                 }
             }
+
+            ////////////////////////////////////// TODO: refactor this ///////////////////////////////////////////////////////////
+            if (incremental_mode && should_add_fact) {
+                // Using a crude (additional) redundancy criterion for facts here. We identify facts by the trace that lead to them.
+                // This is only sufficient because equivalent facts can have multiple traces. We don't need to memoize the entire                    
+                // trace structure. It's enough to store clause_idx/implicant for each trace step.
+                std::vector<std::pair<TransIdx, BoolExpr>> trace_id;
+                for (const auto &step: trace) {
+                    trace_id.push_back(std::make_pair(
+                        step.clause_idx, 
+                        step.implicant
+                    ));
+                }
+
+                if (!seen_traces.contains(trace_id)) {
+                    derived_facts.push_back(trace_as_fact().value());
+                    seen_traces.insert(trace_id);
+                }
+            }
+
         }
         if (luby_loop_count == next_restart || (state && state->restart()) || !check_consistency()) {
             if (Config::Analysis::log) std::cout << "restarting after " << luby_loop_count << " loops" << std::endl;
@@ -829,20 +912,15 @@ const std::optional<Clause> Reachability::derive_new_fact() {
                 sat();
             }
 
-            return {};
+            return derived_facts;
         } else if (all_failed) {
             backtrack();
             proof.headline("Backtrack");
             print_state();
         } else if (try_to_finish()) { // check whether a query is applicable after every step and, importantly, before acceleration (which might approximate)
-            return {};
-        } else {
-            const Step step = trace.back();
-            // TODO is this the only place where we derive a new fact?
-            const auto new_fact_rhs = FunApp(chcs.getRhsLoc(step.clause_idx), chcs.getProgVars());
-            return Clause({}, new_fact_rhs, step.resolvent.getGuard());
+            return derived_facts;
         }
-    } while (true);
+    }
 }
 
 void Reachability::restart() {
@@ -883,7 +961,7 @@ void Reachability::add_clauses(const std::list<Clause> &clauses) {
     }
 }
 
-const std::list<Clause> Reachability::get_facts() const {     
+const std::list<Clause> Reachability::get_initial_facts() const {     
     std::list<Clause> facts;    
     for (const auto trans_idx : chcs.getInitialTransitions()) {
         const Clause fact = chcs.clauseFrom(trans_idx);
@@ -897,7 +975,7 @@ const std::list<Clause> Reachability::get_non_linear_chcs() const {
 }
 
 void Reachability::analyze(ITSProblem &its) {
-    Reachability(its).analyze();
+    Reachability(its, false).analyze();
 }
 
 }

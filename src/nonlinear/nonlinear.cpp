@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 void NonLinearSolver::analyze(ILinearSolver &linear_solver) {
-    std::stack<Clause, std::list<Clause>> facts(linear_solver.get_facts());    
+    std::stack<Clause, std::list<Clause>> facts(linear_solver.get_initial_facts());    
 
     while (true) {
         // std::cout << "================" << std::endl;
@@ -28,28 +28,20 @@ void NonLinearSolver::analyze(ILinearSolver &linear_solver) {
                         const auto resolvent = optional_resolvent.value();
                         // TODO: check for redundancy
                         resolvents.push_back(resolvent);
-
-                        if (resolvent.isLinear()) {
-                            // std::cout << "New Rule: (...)" << std::endl;
-                        }
                     }
                 }
             }
         }
 
         linear_solver.add_clauses(resolvents);
-       
-        // ...
-        while (true) {
-            const auto new_fact = linear_solver.derive_new_fact();
-            // TOOD: why do I get redundant facts here?
-            if (new_fact.has_value()) {
-                // std::cout << "New Fact: " << new_fact.value() << std::endl;
-                facts.push(new_fact.value());
-            } else {
-                break;
-            }
+
+        const auto new_facts = linear_solver.derive_new_facts();
+        for (const auto &fact : new_facts) {
+            // std::cout << fact << std::endl;
+            facts.push(fact);
         }
+
+        // std::cout << "facts: " << new_facts.size() << std::endl;
 
         const auto result = linear_solver.get_analysis_result();     
         if (result == LinearSolver::Result::Unsat) {

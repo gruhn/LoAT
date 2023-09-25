@@ -194,10 +194,10 @@ int main(int argc, char *argv[]) {
     yices::init();
     switch (Config::Analysis::engine) {
     case Config::Analysis::ADCL:
-        if (its.nonLinearCHCs.size() == 0) {
+        if (its->nonLinearCHCs.size() == 0) {
             reachability::Reachability::analyze(*its);
         } else {
-            auto linear_solver = reachability::Reachability(*its);
+            auto linear_solver = reachability::Reachability(*its, true);
             NonLinearSolver::analyze(linear_solver);
         }
         break;

@@ -90,8 +90,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN pip install tomli pyparsing
 
 COPY --from=poly /usr/local/lib/libpoly.a /usr/local/lib/
-COPY --from=poly /usr/lib/libpolyxx.a /usr/local/lib/
-COPY --from=poly /usr/include/poly /usr/local/include/poly
+COPY --from=poly /usr/local/lib/libpolyxx.a /usr/local/lib/
+COPY --from=poly /usr/local/include/poly /usr/local/include/poly
 
 RUN git clone https://github.com/ffrohn/cvc5
 WORKDIR cvc5
@@ -120,7 +120,7 @@ RUN make install
 FROM base as purrs
 RUN xbps-install -yS automake cln-devel gmpxx-devel libtool readline-devel
 
-COPY --from=ginac /usr/local/lib/libginac.a /usr/local/lib64/libginac.a
+COPY --from=ginac /usr/local/lib64/libginac.a /usr/local/lib64/libginac.a
 COPY --from=ginac /usr/local/include/ginac /usr/local/include/ginac
 
 COPY --from=ntl /usr/local/include/NTL /usr/local/include/NTL
@@ -139,7 +139,7 @@ RUN make install
 FROM base as swine
 RUN xbps-install -yS boost-devel
 
-COPY --from=z3 /usr/local/lib/libz3.a /usr/local/lib/
+COPY --from=z3 /usr/local/lib64/libz3.a /usr/local/lib64/
 COPY --from=z3 /usr/local/include/ /usr/local/include/
 
 RUN git clone https://github.com/ffrohn/swine-z3

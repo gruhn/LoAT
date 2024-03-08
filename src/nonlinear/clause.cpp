@@ -339,6 +339,25 @@ const std::tuple<std::set<Clause>, std::set<Clause>> partitionFacts(const std::s
 }
 
 /**
+ * Partitions `chcs` into clauses with SAT constraint (first tuple component) and UNSAT constraint 
+ * (second tuple component).
+ */
+const std::tuple<std::set<Clause>, std::set<Clause>> partitionBySAT(const std::set<Clause>& chcs) {
+    std::set<Clause> chcs_sat;
+    std::set<Clause> chcs_unsat;
+
+    for (const auto& chc: chcs) {
+        if (SmtFactory::check(chc.guard) == Sat) {               
+            chcs_sat.insert(chc);
+        } else {
+            chcs_unsat.insert(chc);
+        }
+    }
+
+    return std::make_tuple(chcs_sat, chcs_unsat);
+}
+
+/**
  * Normalize variable names to detect syntactic equivalence of clauses up-to-renaming.
  *
  * For that the RHS predicate arguments are renamed to always have the indices 0,1,2,3,...    
@@ -453,6 +472,32 @@ std::optional<unsigned> Clause::indexOfLHSPred(const std::string name) const {
     }
 
     return {};
+}
+
+/**
+ * Collect names of all predicate that occur at least once on the RHS of any clause in `chcs`.
+ */
+const std::set<std::string> collectRHSPredicateNames(const std::set<Clause>& chcs) {
+    std::set<std::basic_string<char>> names;
+    for (const auto& chc: chcs) {
+        if (chc.rhs.has_value()) {
+            names.insert(chc.rhs->name);
+        }
+    }
+    return names;
+}
+
+/**
+ * Collect names of all predicate that occur at least once on the LHS of any clause in `chcs`.
+ */
+const std::set<std::string> collectLHSPredicateNames(const std::set<Clause>& chcs) {
+    std::set<std::string> names;   
+    for (const auto& chc: chcs) {
+        for (const auto& pred: chc.lhs) {
+            names.insert(pred.name);
+        }
+    }
+    return names;
 }
 
 /**

@@ -118,7 +118,7 @@
 116 sat     timeout
 117 timeout timeout
 118 timeout timeout
-119 unsat   timeout
+119 unsat   unsat
 120 timeout timeout
 121 unsat   timeout
 122 timeout timeout

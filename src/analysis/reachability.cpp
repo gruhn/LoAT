@@ -973,14 +973,14 @@ void Reachability::add_clauses(const std::set<Clause> &clauses) {
     // only start preprocessing again if at least one new clause was added.
     if (!clauses.empty()) {
         // TODO: are other preprocessing steps also unsound when in non-linear context? 
-        const auto res {Preprocess::preprocess(chcs, incremental_mode)};
-        if (res) {
-            proof.concat(res.getProof());
-            if (Config::Analysis::log) {
-                std::cout << "Simplified ITS" << std::endl;
-                ITSExport::printForProof(chcs, std::cout);
-            }
-        }
+        // const auto res {Preprocess::preprocess(chcs, incremental_mode)};
+        // if (res) {
+        //     proof.concat(res.getProof());
+        //     if (Config::Analysis::log) {
+        //         std::cout << "Simplified ITS" << std::endl;
+        //         ITSExport::printForProof(chcs, std::cout);
+        //     }
+        // }
     }
 }
 

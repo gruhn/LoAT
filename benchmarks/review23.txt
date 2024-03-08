@@ -1,0 +1,13 @@
+### Z3      ADCL
+069 unsat   unsat
+104 unsat   unsat
+117 unsat   unsat
+122 unsat   unsat
+126 unsat   unsat
+214 unsat   timeout
+237 unsat   unsat
+238 unsat   unsat
+248 unsat   unknown
+392 unsat   unsat
+229 unsat   unsat
+381 unsat   timeout

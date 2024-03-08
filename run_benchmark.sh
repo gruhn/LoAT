@@ -11,18 +11,32 @@ pushd build
 make -j4
 popd
 
-# # gdb --args \
-# time ./build/loat-static \
-#    --mode reachability \
-#    --format horn \
-#    --proof-level 0 \
-#    "../chc-comp22-benchmarks/LIA/chc-LIA_076.smt2"
-#    # "../chc-comp23-benchmarks/LIA-nonlin/chc-LIA_075.smt2"
-#   # "../chc-comp22-benchmarks/LIA/chc-LIA_148_unknown.smt2"
-#    # "../chc-comp22-benchmarks/LIA/test3.smt2"
+# 069 : 2s   --> 1m34s
+# 104 : 16s  --> 30s
+# 126 : 5s   --> 5s
+# 237 : 32s  --> 29s
+# 238 : 38s  --> 35s
+# 248 : 1m1s --> 1m6s
+# 392 : 6s   --> 1m18s
 
-# popd
-# exit
+# 381 : ???  --> 16s
+# 229 : 36s  --> 35s
+
+# timeout: 277,343
+# unsat  : 442
+
+# # gdb --args \
+time ./build/loat-static \
+   --mode reachability \
+   --format horn \
+   --proof-level 0 \
+   "../chc-comp23-benchmarks/LIA-nonlin/chc-LIA_069.smt2"
+   # "../chc-comp23-benchmarks/LIA-nonlin/chc-LIA_248.smt2"
+   # "../chc-comp22-benchmarks/LIA/chc-LIA_148_unknown.smt2"
+   # "../chc-comp22-benchmarks/LIA/test3.smt2"
+
+popd
+exit
 
 ##########################################################################
 
@@ -48,13 +62,12 @@ do
     # if [[ "$adcl_result" == "unsat" ]]; then
       set +e
       result=$(timeout 20 ./build/loat-static --mode reachability --format horn --proof-level 0 "$file")
-      # result=$(timeout 5 z3 "$file")
+      # result=$(timeout 20 z3 "$file")
       exit_status=$?
       set -e
 
       if [[ $exit_status -eq 0 ]]; then
         result=$(echo "$result" | head -n 1)
-        # result="$result"
       elif [ $exit_status -eq 124 ]; then
         result="timeout"
       else

@@ -31,4 +31,4 @@ const std::vector<Clause> normalize_all_preds(const std::vector<Clause>& chc_pro
 
 const std::optional<Clause> unilaterally_resolvable_with(const FunApp& pred, const std::set<Clause>& chcs);
 
-const std::set<Clause> presolve(const std::vector<Clause>& chc_problem);
+const std::set<Clause> preprocess(const std::vector<Clause>& chc_problem);

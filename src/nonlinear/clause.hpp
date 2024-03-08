@@ -62,18 +62,22 @@ public:
     
     const VarSet vars() const;
 
-    std::optional<unsigned> indexOfLHSPred(const std::basic_string<char> name) const;
+    std::optional<unsigned> indexOfLHSPred(const std::string name) const;
 };
 
 const Clause removeDuplicatePredicateArguments(const Clause& chc);
 
 const std::tuple<std::set<Clause>, std::set<Clause>> partitionByDegree(const std::set<Clause>& chcs);
 
-const std::map<std::basic_string<char>, std::set<Clause>> partitionFactsByRHS(const std::set<Clause>& facts);
-
 const std::tuple<std::set<Clause>, std::set<Clause>> partitionFacts(const std::set<Clause>& chcs);
 
-const std::map<std::optional<std::basic_string<char>>, std::vector<Clause>> partitionByRHS(const std::set<Clause>& chcs);
+const std::tuple<std::set<Clause>, std::set<Clause>> partitionBySAT(const std::set<Clause>& chcs);
+
+const std::map<std::optional<std::string>, std::vector<Clause>> partitionByRHS(const std::set<Clause>& chcs);
+
+const std::set<std::string> collectRHSPredicateNames(const std::set<Clause>& chcs);
+
+const std::set<std::string> collectLHSPredicateNames(const std::set<Clause>& chcs);
 
 const std::optional<Subs> computeUnifier(const FunApp &pred1, const FunApp &pred2);
 const std::optional<Subs> computeUnifier(const std::vector<Var> &args1, const std::vector<Var> &args2);
@@ -92,3 +96,4 @@ std::ostream& operator<<(std::ostream &s, const FunApp &fun_app);
 std::ostream& operator<<(std::ostream &s, const Clause &chc);
 
 std::ostream& printSimple(std::ostream &s, const Clause &chc);
+

@@ -38,7 +38,7 @@ bool is_trivially_sat(const std::set<Clause>& chc_problem) {
 }
 
 void NonLinearSolver::analyze(const std::vector<Clause>& initial_chcs) {
-    const std::set<Clause> chcs_preprocessed = presolve(normalize_all_preds(initial_chcs));
+    const std::set<Clause> chcs_preprocessed = preprocess(normalize_all_preds(initial_chcs));
 
     if (is_trivially_sat(chcs_preprocessed)) {
         // If preprocessing manages to eliminate all clauses or at least all facts/queries 
@@ -395,6 +395,22 @@ const std::optional<Clause> unilaterally_resolvable_with(const std::string& pred
     }
 }
 
+const std::tuple<std::set<Clause>, std::set<Clause>> filter_sources_and_targets(const std::string& pred, const std::set<Clause>& chcs) {
+    std::set<Clause> chcs_with_pred_on_rhs;
+    std::set<Clause> chcs_with_pred_on_lhs;
+
+    for (const auto& chc: chcs) {
+        if (chc.rhs.has_value() && chc.rhs.value().name == pred) {
+            chcs_with_pred_on_rhs.insert(chc);
+        }
+        if (chc.indexOfLHSPred(pred).has_value()) {
+            chcs_with_pred_on_lhs.insert(chc);
+        }
+    }
+
+    return std::make_tuple(chcs_with_pred_on_rhs, chcs_with_pred_on_lhs);
+}
+
 /**
  * Compute resolvent of `left` and `right`. If the RHS predicate of `left` occurs 
  * multiple times on the LHS of `right`, then keep resolving until all predicates 
@@ -405,7 +421,7 @@ const std::optional<Clause> unilaterally_resolvable_with(const std::string& pred
  *  
  * we would resolve `left` with `right` twice, until `G` is completely eliminated.
  */
-const Clause eliminate_pred(const Clause& left, const Clause& right) {
+const Clause keep_resolving(const Clause& left, const Clause& right) {
     if (left.isQuery()) {
         return right;
     }
@@ -415,7 +431,7 @@ const Clause eliminate_pred(const Clause& left, const Clause& right) {
 
     if (right_pred_index.has_value()) {
         const auto [resolvent, _] = left.resolutionWith(right, right_pred_index.value()).value();
-        return eliminate_pred(left, resolvent);
+        return keep_resolving(left, resolvent);
     } else {
         return right;
     }
@@ -533,79 +549,142 @@ const Clause merge_facts(const std::vector<Clause> facts) {
  * 
  * Thus, we are left with a trivial CHC problem.
  */
-const std::set<Clause> presolve(const std::vector<Clause>& initial_chcs) {
-    // first collect all RHS predicates of all CHCs
-    std::set<std::string> todo_rhs_preds;
-    for (const auto& chc: initial_chcs) {
-        if (chc.rhs.has_value()) {
-            todo_rhs_preds.insert(chc.rhs.value().name);
-        }
-    }
-
+const std::set<Clause> forward_chain(const std::set<std::string>& todo_rhs_preds, const std::set<Clause>& initial_chcs) {
     std::set<Clause> result_chcs(initial_chcs.begin(), initial_chcs.end());
 
-    // iterate over each RHS predicate and ...
-    while (!todo_rhs_preds.empty()) {
-        if (dbg || Config::Analysis::log) {
-            std::cout << "eliminating predicates: " << std::endl;
-        }
+    for (const auto& pred: todo_rhs_preds) {
+        // ... check whether it occurs uniquely on the RHS of one CHC
+        // const auto optional_uni_chc = unilaterally_resolvable_with(pred, chcs);
+        const auto& [ chcs_with_pred_on_rhs, chcs_with_pred_on_lhs ] = filter_sources_and_targets(pred, result_chcs);
 
-        for (const auto& pred: todo_rhs_preds) {
-            // ... check whether it occurs uniquely on the RHS of one CHC
-            const auto optional_uni_chc = unilaterally_resolvable_with(pred, result_chcs);
-            if (optional_uni_chc.has_value()) {
-                const Clause& uni_chc = optional_uni_chc.value();
-                result_chcs.erase(uni_chc);
+        if (chcs_with_pred_on_rhs.size() == 1) {           
+            const Clause& uni_chc = *chcs_with_pred_on_rhs.begin();
+            result_chcs.erase(uni_chc);
 
-                if (dbg || Config::Analysis::log) {
-                    std::cout << " - " << pred << std::endl;
+            if (dbg || Config::Analysis::log) {
+                std::cout << "eliminating predicate: " << pred << std::endl;
+            }
+
+            // An edge case to consider: if we have the clause set
+            //
+            //     (c1) F ==> F
+            //     (c2) F ==> false
+            //
+            // then `F` uniquely occurs on the RHS of `c1`. But after eliminating `c1` we get:
+            //
+            //     (c1+c2) F ==> false
+            //
+            // We can't completely eliminate `F` because it also occurs on the LHS of `c1`.
+            // In fact, any clause that has `F` on the its LHS is "unreachable" so we can remove
+            // them all from the CHC problem. 
+            if (uni_chc.indexOfLHSPred(pred).has_value()) {
+                std::set<Clause> chcs_without_pred;
+                for (const Clause& chc: result_chcs) {
+                    if (!chc.indexOfLHSPred(pred).has_value()) {
+                        chcs_without_pred.insert(chc);
+                    }
                 }
 
-                // An edge case to consider: if we have the clause set
-                //
-                //     (c1) F ==> F
-                //     (c2) F ==> false
-                //
-                // then `F` uniquely occurs on the RHS of `c1`. But after eliminating `c1` we get:
-                //
-                //     (c1+c2) F ==> false
-                //
-                // We can't completely eliminate `F` because it also occurs on the LHS of `c1`.
-                // In fact, any clause that has `F` on the its LHS is "unreachable" so we can remove
-                // them all from the CHC problem. 
-                if (uni_chc.indexOfLHSPred(pred).has_value()) {
-                    std::set<Clause> chcs_without_pred;
-                    for (const Clause& chc: result_chcs) {
-                        if (!chc.indexOfLHSPred(pred).has_value()) {
-                            chcs_without_pred.insert(chc);
-                        }
-                    }
-
-                    result_chcs = chcs_without_pred;
-                } else {               
-                    std::set<Clause> resolvents;
-                    for (const Clause& chc: result_chcs) {
-                        const Clause& resolvent = eliminate_pred(uni_chc, chc);
-                        resolvents.insert(resolvent);
-                    }
-
-                    result_chcs = resolvents;
+                result_chcs = chcs_without_pred;
+            } else {               
+                for (const Clause& chc: chcs_with_pred_on_lhs) {
+                    const Clause& resolvent = keep_resolving(uni_chc, chc);
+                    result_chcs.erase(chc);
+                    result_chcs.insert(resolvent);
                 }
             }
         }
+    }
 
+    return result_chcs;
+}
+const std::set<Clause> backward_chain(const std::set<std::string>& todo_lhs_preds, const std::set<Clause>& initial_chcs) {
+    std::set<Clause> chcs(initial_chcs.begin(), initial_chcs.end());
+
+    for (const auto& pred: todo_lhs_preds) {
+        const auto& [ chcs_with_pred_on_rhs, chcs_with_pred_on_lhs ] = filter_sources_and_targets(pred, chcs);
+
+        if (chcs_with_pred_on_lhs.size() == 1) { 
+            const Clause& uni_chc = *chcs_with_pred_on_lhs.begin();
+
+            // TODO refactor:
+            unsigned occur_count = 0;
+            for (const auto& p: uni_chc.lhs) {
+                if (p.name == pred) {
+                    occur_count++;
+                }
+            }
+            if (occur_count > 1) { continue; }
+
+            unsigned pred_index = uni_chc.indexOfLHSPred(pred).value();
+
+            if (dbg || Config::Analysis::log) {
+                std::cout << "eliminating predicates: " << pred << std::endl;
+            }
+
+            chcs.erase(uni_chc);
+
+            // TODO: explain
+            if (uni_chc.rhs.has_value() && uni_chc.rhs->name == pred) {
+                std::set<Clause> chcs_without_pred;
+                for (const Clause& chc: chcs) {
+                    if (!chc.indexOfLHSPred(pred).has_value()) {
+                        chcs_without_pred.insert(chc);
+                    }
+                }
+
+                chcs = chcs_without_pred;
+            } else {               
+                for (const Clause& chc: chcs_with_pred_on_rhs) {
+                    const auto optional_resolvent = chc.resolutionWith(uni_chc, pred_index);
+                    if (optional_resolvent.has_value()) {
+                        const auto [ resolvent, _ ] = optional_resolvent.value();
+                        chcs.erase(chc);
+                        chcs.insert(resolvent);
+                    }
+                }
+            }
+        }
+    }
+
+    return chcs;
+}
+
+const std::set<Clause> preprocess(const std::vector<Clause>& initial_chcs) {
+    std::set<Clause> result_chcs(initial_chcs.begin(), initial_chcs.end());
+    // TODO: explain
+    std::set<std::string> todo_rhs_preds(collectRHSPredicateNames(result_chcs));
+    // TODO: explain
+    std::set<std::string> todo_lhs_preds(collectLHSPredicateNames(result_chcs));
+
+    if (dbg || Config::Analysis::log) {
+        std::cout << "============= non-linear solver: start preprocessing =============" << std::endl;
+        std::cout << "clauses    : " << result_chcs.size() << std::endl;
+        std::cout << "predicates : " << todo_lhs_preds.size() << std::endl;
+    }
+
+    while (!todo_rhs_preds.empty() || !todo_lhs_preds.empty()) {
+    // while (!todo_rhs_preds.empty()) {
+        result_chcs = forward_chain(todo_rhs_preds, result_chcs);
         todo_rhs_preds.clear();
 
-        if (dbg || Config::Analysis::log) {
-            std::cout << "remove resolvents with UNSAT constraint: " << std::endl;
-        }
+        result_chcs = backward_chain(todo_lhs_preds, result_chcs);
+        todo_lhs_preds.clear();
+
         // Checking resolvents for satisfiability in a separate loop here, 
         // because it reduces the number of calls to the SMT solver.
-        std::set<Clause> chcs_with_sat_guard;
-        for (const auto& chc: result_chcs) {
-            if (SmtFactory::check(chc.guard) == Sat) {               
-                chcs_with_sat_guard.insert(chc);
-            } else if (chc.rhs.has_value()) {
+        // const auto& [chcs_with_sat_guard, chcs_with_unsat_guard] = partitionBySAT(result_chcs);
+        const auto& chcs_with_unsat_guard = std::set<Clause>({});
+        const auto& chcs_with_sat_guard = result_chcs;
+        if (dbg || Config::Analysis::log) {
+            std::cout 
+                << "removed "
+                << chcs_with_unsat_guard.size()
+                << " resolvent(s) with UNSAT constraint" 
+                << std::endl;
+        }
+        for (const auto& chc: chcs_with_unsat_guard) {
+            if (chc.rhs.has_value()) {
                 // Assume we have the resolvents:
                 //
                 //    (r1) F /\ (X>0 /\ X<0) ==> G
@@ -617,6 +696,11 @@ const std::set<Clause> presolve(const std::vector<Clause>& initial_chcs) {
                 // we remove a resolvent, we add its RHS predicate into `rhs_preds`
                 // to re-check it in the next while-loop iteration.
                 todo_rhs_preds.insert(chc.rhs.value().name);
+
+                // TODO: explain
+                for (const auto& pred: chc.lhs) {
+                    todo_lhs_preds.insert(pred.name);
+                }
             }
         }
 
@@ -691,7 +775,9 @@ const std::set<Clause> presolve(const std::vector<Clause>& initial_chcs) {
     }
 
     if (dbg || Config::Analysis::log) {
-        std::cout << std::endl;
+        std::cout << "============= non-linear solver: preprocessing complete =============" << std::endl;
+        std::cout << "remaining clauses    : " << result_chcs.size() << std::endl;
+        std::cout << "remaining predicates : TODO" << std::endl; // << result_chcs.size() << std::endl;
     }
 
     // Use all facts and non-linear clauses that are already known at this point and 

@@ -441,7 +441,7 @@
 439 sat     timeout
 440 sat     timeout
 441 sat     timeout
-442 unsat   unsat 
+442 unsat   timeout 
 443 sat     timeout
 444 unsat   unsat   
 445 sat     timeout

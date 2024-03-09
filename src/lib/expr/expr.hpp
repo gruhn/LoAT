@@ -14,6 +14,10 @@ const std::optional<Var> toVar(const ThExpr &expr);
 
 Var next(const Var &var);
 
+Var nextProgVar(const Var &var);
+
+Var varWithSameTypeAs(unsigned var_index, const Var &other_var);
+
 ThExpr toExpr(const Var &var);
 
 ThExpr subs(const ThExpr &expr, const Subs &subs);

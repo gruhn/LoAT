@@ -23,6 +23,22 @@ public:
     unsigned long boolArity() const;
 };
 
+class Signature {
+
+public:
+    const std::vector<std::string> lhs;
+    const std::optional<std::string> rhs;
+
+    Signature(
+        const std::vector<std::string> lhs,
+        const std::string rhs
+    ) : lhs(lhs), rhs(rhs) {}
+
+    Signature(
+        const std::vector<std::string> lhs
+    ) : lhs(lhs) {}
+};
+
 class Clause {
 
 public:
@@ -50,6 +66,8 @@ public:
 
     const Clause renameWith(const Subs &renaming) const;
 
+    const Clause makeVarsDisjointTo(const Clause& other_chc) const;
+
     const std::optional<std::tuple<Clause, BoolExpr>> resolutionWith(const Clause &chc, unsigned pred_index) const;
 
     const Clause normalize() const;
@@ -63,20 +81,25 @@ public:
     const VarSet vars() const;
 
     std::optional<unsigned> indexOfLHSPred(const std::basic_string<char> name) const;
-};
 
-const Clause removeDuplicatePredicateArguments(const Clause& chc);
+    const Signature getSignature() const;
+
+    const Clause withGuard(const BoolExpr& new_guard) const;
+};
 
 const std::tuple<std::set<Clause>, std::set<Clause>> partitionByDegree(const std::set<Clause>& chcs);
 
-const std::map<std::basic_string<char>, std::set<Clause>> partitionFactsByRHS(const std::set<Clause>& facts);
+const std::map<std::string, std::set<Clause>> partitionFactsByRHS(const std::set<Clause>& facts);
 
 const std::tuple<std::set<Clause>, std::set<Clause>> partitionFacts(const std::set<Clause>& chcs);
+
+const std::map<Signature, std::vector<Clause>> partitionBySignature(const std::set<Clause>& chcs);
 
 const std::map<std::optional<std::basic_string<char>>, std::vector<Clause>> partitionByRHS(const std::set<Clause>& chcs);
 
 const std::optional<Subs> computeUnifier(const FunApp &pred1, const FunApp &pred2);
 const std::optional<Subs> computeUnifier(const std::vector<Var> &args1, const std::vector<Var> &args2);
+const std::optional<Subs> computeUnifier(const Clause &chc1, const Clause &chc2);
 
 const std::pair<unsigned long, unsigned long> maxArity(const std::vector<Clause>& chc_problem);
 
@@ -87,8 +110,12 @@ bool allLinear(const std::set<Clause>& chcs);
 bool operator<(const Clause &c1, const Clause &c2);
 bool operator<(const FunApp &fun1, const FunApp &fun2);
 
+bool operator<(const Signature &sig1, const Signature &sig2);
+bool operator==(const Signature &sig1, const Signature &sig2);
+bool operator!=(const Signature &sig1, const Signature &sig2);
+
 std::ostream& operator<<(std::ostream &s, const FunApp &fun_app);
 
-std::ostream& operator<<(std::ostream &s, const Clause &chc);
+std::ostream& operator<<(std::ostream &s, const Signature &chc);
 
-std::ostream& printSimple(std::ostream &s, const Clause &chc);
+std::ostream& operator<<(std::ostream &s, const Clause &chc);

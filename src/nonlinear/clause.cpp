@@ -62,6 +62,8 @@ const std::optional<Subs> computeUnifier(const std::vector<Var> &args1, const st
                 // have `var1` multiple times as an argument. This is an implict
                 // equality. We assume at this point that this doesn't occur and 
                 // that all equalities are explicitly mentioned in the constraint.                
+                std::cout << FunApp("P1", args1) << std::endl;
+                std::cout << FunApp("P2", args2) << std::endl;
                 throw std::logic_error("computeUnifier: predicate has duplicate arguments");
             } else {
                 // QUESTION: I suspect some C++ template magic can make this prettier
@@ -92,6 +94,50 @@ const std::optional<Subs> computeUnifier(const std::vector<Var> &args1, const st
         return {};
     }
 }
+
+/**
+ * TODO
+ */
+const std::optional<Subs> computeUnifier(const Clause &chc1, const Clause &chc2) {
+    Subs unifier;
+
+    if (chc1.rhs.has_value() && chc2.rhs.has_value()) {
+        const auto &rhs_unifier = computeUnifier(chc1.rhs.value(), chc2.rhs.value());
+
+        if (rhs_unifier.has_value()) {
+            unifier = rhs_unifier.value(); // RHS unifiable
+        } else {
+            return {}; // RHS not unifiable ==> entire clauses not unifiable
+        }
+    }
+
+    std::list<FunApp> lhs_preds2(chc2.lhs.begin(), chc2.lhs.end());
+
+    for (const auto& pred1: chc1.lhs) {
+        auto it = lhs_preds2.begin();
+        while (true) {
+            if (it == lhs_preds2.end()) {
+                return {}; // no partner for `pred1` in `chc2.lhs`
+            }
+
+            auto &pred_unifier = computeUnifier(pred1, *it);
+            if (pred_unifier.has_value()) {
+                unifier = expr::concat(unifier, pred_unifier.value());
+                lhs_preds2.erase(it);
+                break;
+            }
+
+            it++;
+        }
+    }
+
+    if (!lhs_preds2.empty()) {
+        return {}; // `chc1.lhs` has fewer LHS predicates than `chc2.lhs`
+    }
+
+    return unifier;
+}
+
 
 
 /**
@@ -198,6 +244,26 @@ const VarSet Clause::vars() const {
     return vs;
 }
 
+/**
+ * TODO
+ */
+const Signature Clause::getSignature() const {
+    std::vector<std::string> lhs;
+    lhs.reserve(this->lhs.size());
+
+    for (const auto& pred: this->lhs) {
+        lhs.push_back(pred.name);
+    }
+
+    std::sort(lhs.begin(), lhs.end());
+
+    if (this->rhs.has_value()) {
+        return Signature(lhs, this->rhs.value().name);
+    } else {
+        return Signature(lhs);
+    }
+}
+
 const std::vector<FunApp> deletePredAt(const std::vector<FunApp>& preds, unsigned index) {
     std::vector<FunApp> new_preds;
     for (unsigned i=0; i<preds.size(); i++) {
@@ -206,6 +272,22 @@ const std::vector<FunApp> deletePredAt(const std::vector<FunApp>& preds, unsigne
         }
     }
     return new_preds;
+}
+
+/**
+ * TODO
+ */
+const Clause Clause::makeVarsDisjointTo(const Clause& other_chc) const {
+    Subs renaming;
+
+    const VarSet this_vars {this->vars()};
+    for (const auto &var: other_chc.vars()) {
+        if (this_vars.contains(var)) {
+            renaming.put(var, expr::toExpr(expr::next(var)));
+        }
+    }
+
+    return this->renameWith(renaming);
 }
 
 /**
@@ -237,14 +319,7 @@ const std::optional<std::tuple<Clause, BoolExpr>> Clause::resolutionWith(const C
     }
 
     // Make sure variables in `this` and `chc` are disjoint.
-    Subs renaming;
-    const VarSet this_vars {this->vars()};
-    for (const auto &var: chc.vars()) {
-        if (this_vars.contains(var)) {
-            renaming.put(var, expr::toExpr(expr::next(var)));
-        }
-    }
-    const Clause this_with_disjoint_vars = this->renameWith(renaming);
+    const Clause this_with_disjoint_vars = this->makeVarsDisjointTo(chc);
 
     const auto unifier = computeUnifier(this_with_disjoint_vars.rhs.value(), resolved_pred);
 
@@ -339,6 +414,54 @@ const std::tuple<std::set<Clause>, std::set<Clause>> partitionFacts(const std::s
 }
 
 /**
+ * TODO
+ */
+const std::map<Signature, std::vector<Clause>> partitionBySignature(const std::set<Clause>& chcs) {
+    std::map<Signature, std::vector<Clause>> partition;
+
+    for (const auto& chc: chcs) {
+        const auto& sig = chc.getSignature();
+
+        if (partition.contains(sig)) {           
+            partition.at(sig).push_back(chc);
+        } else {
+            partition.emplace(sig, std::vector({ chc }));
+        }
+    }
+
+    return partition;
+}
+
+/**
+ * TODO
+ */
+void normalize_aux(
+    const VarSet &all_original_vars,
+    const FunApp &pred,
+    unsigned &var_index,
+    std::vector<BoolExpr> &implicit_equalities,
+    Subs &renaming
+) {
+
+    for (const Var arg: pred.args) {
+        Var new_arg = expr::varWithSameTypeAs(var_index, arg);
+        var_index++;
+
+        if (all_original_vars.contains(new_arg)) {
+            renaming.put(new_arg, expr::toExpr(expr::next(new_arg)));
+        }
+
+        if (renaming.contains(arg)) { // already contained ==> implict equality
+            implicit_equalities.push_back(
+                expr::mkEq(renaming.get(arg), expr::toExpr(new_arg))
+            );
+        } else {
+            renaming.put(arg, expr::toExpr(new_arg));
+        }           
+    }
+}
+
+/**
  * Normalize variable names to detect syntactic equivalence of clauses up-to-renaming.
  *
  * For that the RHS predicate arguments are renamed to always have the indices 0,1,2,3,...    
@@ -350,53 +473,54 @@ const std::tuple<std::set<Clause>, std::set<Clause>> partitionFacts(const std::s
  * 
  *     i0 > i2 /\ b1 ==> F(i0,b1,i2)
  *
- * One exception is when a variable occurs multiple times in the arguments of the 
- * original RHS predicate. For example:
+ * When a variable occurs multiple times in the arguments of the original RHS predicate. 
+ * For example:
  * 
  *     i44 > i9 /\ b23 ==> F(i44,b23,i9,i44)
  *
- * is renamed to
+ * then that consitutes an implicit equality that must be preserved. So we add it 
+ * explicitly to the constraint:
  *
- *     i0 > i2 /\ b1 ==> F(i0,b1,i2,i0)
+ *     i0 > i2 /\ b1 /\ i0=i3 ==> F(i0,b1,i2,i3)
  *
- * to preserve the implict equality. But this is not a problem to detect syntatic
- * equivalence.
  */
 const Clause Clause::normalize() const {
-    const auto& chc_uniq_args = removeDuplicatePredicateArguments(*this);
+    const VarSet all_original_vars = this->vars();
+    std::unique_ptr<Clause> result_chc = std::make_unique<Clause>(*this);
 
-    if (!chc_uniq_args.rhs.has_value()) {
-        return chc_uniq_args;
-    }
-    const auto rhs = chc_uniq_args.rhs.value();
+    unsigned var_index = 1;
+    std::vector<BoolExpr> implicit_equalities;
 
-    // construct a vector of variables with the same length as `rhs.args`
-    // and the same variable types in each position, except that the variable
-    // indices are simply: 0,1,2,3,etc.
-    std::vector<Var> target_args;
-    for (unsigned i=0; i < size(rhs.args); i++) {           
-        const auto var = std::visit(Overload{
-            [i](const NumVar&) {
-                return Var(NumVar(i));
-            },
-            [i](const BoolVar&) {
-                return Var(BoolVar(i));
-            }
-        }, rhs.args[i]);
+    if (this->rhs.has_value()) {
+        Subs renaming;
 
-        target_args.push_back(var);
+        normalize_aux(
+            all_original_vars, 
+            this->rhs.value(), 
+            var_index, 
+            implicit_equalities,
+            renaming
+        );
+
+        result_chc = std::make_unique<Clause>(result_chc->renameWith(renaming));
     }
 
-    const auto unifier = computeUnifier(rhs.args, target_args);
-
-    if (unifier.has_value()) {
-        return chc_uniq_args.renameWith(unifier.value());
-    } else {
-        // Variable vectors should always be unifiable unless the vectors have differnt length,
-        // but the vectors should have the same length by construction so this error should not
-        // occur.
-        throw std::logic_error("failed to unify variable vectors");
+    Subs lhs_renaming;
+    for (const auto &lhs_pred: result_chc->lhs) {
+        normalize_aux(
+            all_original_vars, 
+            lhs_pred, 
+            var_index, 
+            implicit_equalities,
+            lhs_renaming
+        );
     }
+    result_chc = std::make_unique<Clause>(result_chc->renameWith(lhs_renaming));
+
+    implicit_equalities.push_back(result_chc->guard);
+    const auto new_guard = BExpression::buildAnd(implicit_equalities)->simplify();
+
+    return Clause(result_chc->lhs, result_chc->rhs, new_guard);
 }
 
 /**
@@ -455,6 +579,10 @@ std::optional<unsigned> Clause::indexOfLHSPred(const std::string name) const {
     return {};
 }
 
+const Clause Clause::withGuard(const BoolExpr &new_guard) const {
+    return Clause(this->lhs, this->rhs, new_guard);
+}
+
 /**
  * Find maximum number of int/bool-valued variables that appear in the arguments of any
  * any predicate in any clause of `chc_problem`. Returns counts as pair:
@@ -480,58 +608,6 @@ const std::pair<unsigned long, unsigned long> maxArity(const std::vector<Clause>
     }
 
     return std::pair(max_int_arity, max_bool_arity);
-}
-
-/**
- * If a predicate has duplicate arguments as in 
- *
- *     F(x,y,x)
- *
- * then this constitutes an implict equality. This function makes the equality
- * explicit by moving it into the guard.
- */
-const Clause removeDuplicatePredicateArguments(const Clause& chc) {
-    std::vector<BoolExpr> extra_conditions = { chc.guard };
-
-    std::vector<FunApp> new_lhs;
-    new_lhs.reserve(chc.lhs.size());
-    for (const auto& pred: chc.lhs) {
-        std::vector<Var> new_args;
-        
-        for (const auto& arg: pred.args) {
-            if (std::find(new_args.begin(), new_args.end(), arg) != new_args.end()) { 
-                auto fresh_var = expr::next(arg);
-                extra_conditions.push_back(expr::mkEq(expr::toExpr(arg), expr::toExpr(fresh_var)));
-                new_args.push_back(fresh_var);
-            } else {
-                new_args.push_back(arg);
-            }
-        }
-
-        new_lhs.push_back(pred.withArgs(new_args));
-    }
-
-    std::unique_ptr<FunApp> new_rhs;
-    if (chc.rhs.has_value()) {
-        std::vector<Var> new_args;
-
-        for (const auto& arg: chc.rhs.value().args) {
-            if (std::find(new_args.begin(), new_args.end(), arg) != new_args.end()) { 
-                auto fresh_var = expr::next(arg);
-                extra_conditions.push_back(expr::mkEq(expr::toExpr(arg), expr::toExpr(fresh_var)));
-                new_args.push_back(fresh_var);
-            } else {
-                new_args.push_back(arg);
-            }
-        }
-
-        new_rhs = std::make_unique<FunApp>(
-            chc.rhs.value().withArgs(new_args)
-        );
-    }
-    
-    const auto new_guard = BExpression::buildAnd(extra_conditions)->simplify();
-    return Clause(new_lhs, chc.rhs.has_value() ? *new_rhs : chc.rhs, new_guard);
 }
 
 // QUESTION: does C++ have no iterable type of somehting so we can abstract over the collection type?
@@ -584,6 +660,26 @@ bool operator<(const Clause &c1, const Clause &c2) {
     }
 }
 
+bool operator==(const Signature &sig1, const Signature &sig2) {
+    return sig1.rhs == sig2.rhs && sig1.lhs == sig2.lhs;
+}
+
+bool operator!=(const Signature &sig1, const Signature &sig2) {
+    return !(sig1 == sig2);
+}
+
+bool operator<(const Signature &sig1, const Signature &sig2) {
+    if (sig1.rhs < sig2.rhs) {
+        return true;
+    } else if (sig2.rhs < sig1.rhs) {
+        return false;
+    } else if (sig1.lhs < sig2.lhs) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 std::ostream &operator<<(std::ostream &s, const FunApp &fun) {
     s << fun.name;
 
@@ -620,15 +716,15 @@ std::ostream &operator<<(std::ostream &s, const Clause &chc) {
     return s;
 }
 
-std::ostream& printSimple(std::ostream &s, const Clause &chc) {
-    for (const FunApp& pred: chc.lhs) {
-        s << pred.name << " /\\ ";
+std::ostream &operator<<(std::ostream &s, const Signature &sig) {
+    for (const std::string& pred: sig.lhs) {
+        s << pred << " /\\ ";
     }
 
     s << "(...) ==> ";
 
-    if (chc.rhs.has_value()) {
-        s << chc.rhs.value().name;
+    if (sig.rhs.has_value()) {
+        s << sig.rhs.value();
     } else {
         s << "false";
     }

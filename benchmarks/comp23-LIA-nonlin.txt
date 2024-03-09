@@ -185,7 +185,7 @@
 183 timeout timeout
 184 timeout timeout
 185 sat     sat
-186 sat     unknown
+186 sat     sat
 187 sat     timeout
 188 unsat   timeout
 189 unsat   unsat

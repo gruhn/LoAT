@@ -61,6 +61,28 @@ Var next(const Var &var) {
                       }, var);
 }
 
+Var nextProgVar(const Var &var) {
+    return std::visit(Overload{
+        [](const NumVar&) {
+            return Var(NumVar::nextProgVar());
+        },
+        [](const BoolVar&) {
+            return Var(BoolVar::nextProgVar());
+        }
+    }, var);
+}
+
+Var varWithSameTypeAs(unsigned var_index, const Var &other_var) {
+    return std::visit(Overload{
+      [var_index](const NumVar&) {
+          return Var(NumVar(var_index));
+      },
+      [var_index](const BoolVar&) {
+          return Var(BoolVar(var_index));
+      }
+    }, other_var);
+}
+
 ThExpr toExpr(const Var &var) {
     return TheTheory::varToExpr(var);
 }

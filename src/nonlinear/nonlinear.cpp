@@ -38,6 +38,11 @@ bool is_trivially_sat(const std::set<Clause>& chc_problem) {
 }
 
 void NonLinearSolver::analyze(const std::vector<Clause>& initial_chcs) {
+    // for (const auto& chc: initial_chcs) {
+    //     std::cout << chc << std::endl << std::endl;
+    // }
+    // return;
+
     const std::set<Clause> chcs_preprocessed = presolve(normalize_all_preds(initial_chcs));
 
     if (is_trivially_sat(chcs_preprocessed)) {
@@ -46,6 +51,10 @@ void NonLinearSolver::analyze(const std::vector<Clause>& initial_chcs) {
         std::cout << "sat" << std::endl;
         return;    
     } else if (allLinear(chcs_preprocessed)) {
+        if (dbg || Config::Analysis::log) {
+            std::cout << "All CHCs linear after preprocessing" << std::endl;
+        }
+
         ITSPtr its = ITSProblem::fromClauses(chcs_preprocessed);
         reachability::Reachability::analyze(*its);
         return;
@@ -178,7 +187,7 @@ const std::set<Clause> all_resolvents(const std::set<Clause>& non_linear_chcs, c
                 << " facts"                
                 << std::endl;
 
-            printSimple(std::cout << "NL: ", chc) << std::endl;
+            std::cout << "NL: " << chc.getSignature() << std::endl;
         }
 
         solver->push();
@@ -226,7 +235,6 @@ void all_resolvents_aux(
     } else {
         // All resolvents that DO eliminate F(x)
         for (const auto& fact: facts) {
-            // printSimple(std::cout << "fact: ", fact) << std::endl;
             const auto optional_resolvent = fact.resolutionWith(chc, pred_index);
 
             if (optional_resolvent.has_value()) {
@@ -487,6 +495,43 @@ const Clause merge_facts(const std::vector<Clause> facts) {
 
     return *fact_accum;
 }
+const Clause merge_clauses(const std::vector<Clause>& chcs) {
+    if (chcs.size() == 0) {
+        throw std::logic_error("merge_clauses: expect at least one clause");
+    } 
+
+    std::unique_ptr<const Clause> chc_accum = std::make_unique<const Clause>(chcs.at(0));
+
+    for (unsigned i=1; i < chcs.size(); i++) {
+        const auto& chc_current = chcs.at(i);
+
+        if (chc_current.getSignature() != chc_accum->getSignature()) {
+            auto sig1 = chc_current.getSignature();
+            auto sig2 = chc_accum->getSignature();
+            
+            std::cout << (sig1 < sig2) << " " << (sig2 < sig1) << std::endl;
+            std::cout << "sig 1: " << chc_current.getSignature() << std::endl;
+            std::cout << "sig 2: " << chc_accum->getSignature() << std::endl;
+            throw std::logic_error("merge_clauses: got clauses with different signature");
+        }
+
+        const auto &chc_current_disjoint = chc_current.makeVarsDisjointTo(*chc_accum);
+        const auto &unifier = computeUnifier(chc_current_disjoint, *chc_accum);
+
+        if (!unifier.has_value()) {
+            throw std::logic_error("merge_clauses: not unifiable despite same signature");
+        }
+
+        const std::vector<BoolExpr> guards({ 
+            chc_current_disjoint.renameWith(unifier.value()).guard, 
+            chc_accum->guard 
+        });
+        const auto& guard_disjunct = BExpression::buildOr(guards);
+        chc_accum = std::make_unique<const Clause>(chc_accum->withGuard(guard_disjunct));
+    }
+
+    return *chc_accum;
+}
 
 /**
  * If a predicate only occurs on the RHS of a single CHC, then there is only one 
@@ -546,10 +591,6 @@ const std::set<Clause> presolve(const std::vector<Clause>& initial_chcs) {
 
     // iterate over each RHS predicate and ...
     while (!todo_rhs_preds.empty()) {
-        if (dbg || Config::Analysis::log) {
-            std::cout << "eliminating predicates: " << std::endl;
-        }
-
         for (const auto& pred: todo_rhs_preds) {
             // ... check whether it occurs uniquely on the RHS of one CHC
             const auto optional_uni_chc = unilaterally_resolvable_with(pred, result_chcs);
@@ -558,7 +599,7 @@ const std::set<Clause> presolve(const std::vector<Clause>& initial_chcs) {
                 result_chcs.erase(uni_chc);
 
                 if (dbg || Config::Analysis::log) {
-                    std::cout << " - " << pred << std::endl;
+                    std::cout << "eliminating predicate: " << pred << std::endl;
                 }
 
                 // An edge case to consider: if we have the clause set
@@ -672,22 +713,35 @@ const std::set<Clause> presolve(const std::vector<Clause>& initial_chcs) {
         //
         //     (x=0 \/ x=1 \/ x=2) ==> G(x)
         //
-        const auto& [ facts, rest_chcs ] = partitionFacts(chcs_with_sat_guard);
-        result_chcs = rest_chcs;
-        for (const auto& [_, fact_group]: partitionByRHS(facts)) {
-            const Clause& merged_fact = merge_facts(fact_group);           
 
-            // If `fact_group.size() == 1` then `merge_facts` has nothing to merge and just 
-            // returns the single fact unchanged. Thus, no facts where eliminated and nothing
-            // new became unilaterally resolvable. On the other hand, if `fact_group.size() > 1`  
-            // then facts got eliminated, so the resulting clause might now be unilaterally 
+        // const auto& [ facts, rest_chcs ] = partitionFacts(chcs_with_sat_guard);
+        // result_chcs = rest_chcs;
+        // for (const auto& [_, fact_group]: partitionByRHS(facts)) {
+        //     const Clause& merged_chc = merge_facts(fact_group);           
+
+        //     if (fact_group.size() > 1) {
+        //         todo_rhs_preds.insert(merged_chc.rhs.value().name);
+        //     }
+
+        //     result_chcs.insert(merged_chc);
+        // }
+
+        result_chcs.clear();
+        for (const auto& [_, chc_group]: partitionBySignature(chcs_with_sat_guard)) {
+            const Clause& merged_chc = merge_clauses(chc_group);           
+
+            // If `chc_group.size() == 1` then `merge_clauses` has nothing to merge and just 
+            // returns the single chc unchanged. Thus, no chcs where eliminated and nothing
+            // new became unilaterally resolvable. On the other hand, if `chc_group.size() > 1`  
+            // then chcs got eliminated, so the resulting clause might now be unilaterally 
             // resolvable and we add its RHS predicate back into `todo_rhs_preds`.
-            if (fact_group.size() > 1) {
-                todo_rhs_preds.insert(merged_fact.rhs.value().name);
+            if (chc_group.size() > 1) {
+                todo_rhs_preds.insert(merged_chc.rhs.value().name);
             }
 
-            result_chcs.insert(merged_fact);
+            result_chcs.insert(merged_chc);
         }
+
     }
 
     if (dbg || Config::Analysis::log) {

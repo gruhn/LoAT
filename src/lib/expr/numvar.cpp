@@ -1,7 +1,5 @@
 #include "numvar.hpp"
 
-#include <assert.h>
-
 int NumVar::last_tmp_idx {0};
 int NumVar::last_prog_idx {1};
 

@@ -7,11 +7,11 @@ on:
       timeout:
         required: true
         type: number
-        default: 20
+        default: 300
       engine:
         required: true
         type: choice
-        default: abmc
+        default: adcl
         options:
         - abmc
         - adcl
@@ -26,7 +26,7 @@ on:
       directory:
           required: true
           type: choice
-          default: LIA-Lin
+          default: LIA
           options:
           - LIA-Lin
           - LIA-lin

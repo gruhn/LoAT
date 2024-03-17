@@ -530,7 +530,7 @@ const Clause merge_clauses(const std::vector<Clause>& chcs) {
         chc_accum = std::make_unique<const Clause>(chc_accum->withGuard(guard_disjunct));
     }
 
-    return *chc_accum;
+    return chc_accum->normalize();
 }
 
 /**

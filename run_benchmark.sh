@@ -22,8 +22,8 @@ time ./build/loat-static \
    --format horn \
    --proof-level 0 \
    --log \
-   "../chc-comp23-benchmarks/LIA-nonlin/chc-LIA_108.smt2"
-   # "../chc-comp22-benchmarks/LIA/chc-LIA_076.smt2"
+   "../chc-comp23-benchmarks/LIA-nonlin/chc-LIA_022.smt2"
+   # "../chc-comp22-benchmarks/LIA/chc-LIA_060.smt2"
 popd
 exit
 

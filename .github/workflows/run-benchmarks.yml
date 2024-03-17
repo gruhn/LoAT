@@ -62,7 +62,7 @@ jobs:
       - name: Export LoAT Binary
         uses: actions/upload-artifact@master
         with:
-          name: loat-static
+          name: loat-static-${{ github.ref }}
           path: build/release/loat-static
 
   chc-comp-benchmark:
@@ -88,7 +88,7 @@ jobs:
       - name: Import LoAT Binary
         uses: actions/download-artifact@master
         with:
-          name: loat-static
+          name: loat-static-${{ github.ref }}
           path: /usr/local/bin/
 
       - name: Run Benchmark

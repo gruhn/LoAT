@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1710630840906,
+  "lastUpdate": 1710699420672,
   "repoUrl": "https://github.com/gruhn/LoAT",
   "entries": {
     "LoAT Benchmarks": [
@@ -137,6 +137,43 @@ window.BENCHMARK_DATA = {
           {
             "name": "chc-comp23-benchmarks timeout",
             "value": "290",
+            "unit": "number"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Niklas Gruhn",
+            "username": "gruhn",
+            "email": "niklas@gruhn.me"
+          },
+          "committer": {
+            "name": "Niklas Gruhn",
+            "username": "gruhn",
+            "email": "niklas@gruhn.me"
+          },
+          "id": "14bf74b6b4943935cc6b52570bbc44be9141366e",
+          "message": "tinker",
+          "timestamp": "2024-03-08T20:56:54Z",
+          "url": "https://github.com/gruhn/LoAT/commit/14bf74b6b4943935cc6b52570bbc44be9141366e"
+        },
+        "date": 1710699418775,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "chc-comp22-benchmarks unknown",
+            "value": "90",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks unsat",
+            "value": "77",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks timeout",
+            "value": "289",
             "unit": "number"
           }
         ]

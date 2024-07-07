@@ -15,14 +15,6 @@ on:
         options:
         - loat
         - z3
-      engine:
-        required: true
-        type: choice
-        default: abmc
-        options:
-        - abmc
-        - adcl
-        - bmc
       repo:
         required: true
         type: choice
@@ -34,7 +26,7 @@ on:
       directory:
           required: true
           type: choice
-          default: LIA-Lin
+          default: LIA
           options:
           - LIA-Lin
           - LIA-lin
@@ -116,7 +108,7 @@ jobs:
             if [[ ${{ inputs.tool }} -eq "z3" ]]; then
               result=$(timeout ${{ inputs.timeout }} z3 "${filename}")
             else
-              result=$(timeout ${{ inputs.timeout }} loat-static --mode ${{ matrix.mode }} --format ${{ matrix.format }} --proof-level 0 --engine ${{ inputs.engine }} "${filename}")
+              result=$(timeout ${{ inputs.timeout }} loat-static --mode ${{ matrix.mode }} --format ${{ matrix.format }} --proof-level 0 --engine adcl "${filename}")
             fi            
             exit_status=$?
             set -e

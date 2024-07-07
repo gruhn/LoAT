@@ -104,12 +104,8 @@ jobs:
             printf "running ${filename} ... "
             start=`date +%s`
 
-            set +e
-            if [[ ${{ inputs.tool }} -eq "z3" ]]; then
-              result=$(timeout ${{ inputs.timeout }} z3 "${filename}")
-            else
-              result=$(timeout ${{ inputs.timeout }} loat-static --mode ${{ matrix.mode }} --format ${{ matrix.format }} --proof-level 0 --engine adcl "${filename}")
-            fi            
+            set +e            
+            result=$(timeout ${{ inputs.timeout }} loat-static --mode ${{ matrix.mode }} --format ${{ matrix.format }} --proof-level 0 --engine adcl "${filename}")        
             exit_status=$?
             set -e
 
@@ -126,7 +122,7 @@ jobs:
 
             printf "${result} after ${runtime}s\n"
 
-            echo ${result} > ${filename}.res
+            echo "${result} after ${runtime}s" > ${filename}.res
           }
 
           # make 'benchmark' available for 'parallel'

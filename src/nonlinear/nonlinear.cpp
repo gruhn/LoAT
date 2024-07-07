@@ -70,6 +70,9 @@ void NonLinearSolver::analyze(const std::vector<Clause>& initial_chcs) {
             // Hand over to linear solver to derive new facts:
             const auto& derived_facts = linear_solver.derive_new_facts(max_constraint_tier);
 
+            std::cout << "not-stuck" << std::endl;
+            return;   
+
             // If the linear solver proved Unsat, we can terminate. Otherwise, we use the derived facts to in the next
             // resolution round to derive more linear clauses, that we can feed back into the linear solver. Unless 
             // the set of derived facts is empty, then we have explored the entire search space and can also terminate:

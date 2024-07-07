@@ -19,10 +19,11 @@ on:
       repo:
         required: true
         type: choice
-        default: chc-comp22-benchmarks
+        default: chc-comp24-benchmarks
         options:
         - chc-comp22-benchmarks
         - chc-comp23-benchmarks
+        - chc-comp24-benchmarks
       directory:
           required: true
           type: choice

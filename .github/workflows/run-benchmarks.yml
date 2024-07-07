@@ -54,14 +54,13 @@ jobs:
           options: -v ${{ github.workspace }}:/LoAT
           shell: bash
           run: |
-            mkdir -p /LoAT/build/release
-            cd /LoAT/build/release
+            cp /usr/local/bin/z3 ./
       
       - name: Export Z3 Binary
         uses: actions/upload-artifact@master
         with:
           name: z3
-          path: /usr/local/bin/z3
+          path: ./z3
 
   chc-comp-benchmark:
     needs: [build-loat-binary]

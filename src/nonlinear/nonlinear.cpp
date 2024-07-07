@@ -46,9 +46,13 @@ void NonLinearSolver::analyze(const std::vector<Clause>& initial_chcs) {
         std::cout << "sat" << std::endl;
         return;    
     } else if (allLinear(chcs_preprocessed)) {
-        ITSPtr its = ITSProblem::fromClauses(chcs_preprocessed);
-        reachability::Reachability::analyze(*its);
-        return;
+        // ITSPtr its = ITSProblem::fromClauses(chcs_preprocessed);
+        // reachability::Reachability::analyze(*its);
+        std::cout << "lin" << std::endl;
+        return;  
+    } else {
+        std::cout << "nonlin" << std::endl;
+        return; 
     }
 
     auto [linear_chcs, non_linear_chcs] = partitionByDegree(chcs_preprocessed);

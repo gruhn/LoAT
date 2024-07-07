@@ -67,11 +67,9 @@ void NonLinearSolver::analyze(const std::vector<Clause>& initial_chcs) {
                 std::cout << "============= non-linear solver main loop =============" << std::endl;
             }
 
+            std::cout << "lin ";
             // Hand over to linear solver to derive new facts:
-            const auto& derived_facts = linear_solver.derive_new_facts(max_constraint_tier);
-
-            std::cout << "not-stuck" << std::endl;
-            return;   
+            const auto& derived_facts = linear_solver.derive_new_facts(max_constraint_tier); 
 
             // If the linear solver proved Unsat, we can terminate. Otherwise, we use the derived facts to in the next
             // resolution round to derive more linear clauses, that we can feed back into the linear solver. Unless 

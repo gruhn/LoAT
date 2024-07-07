@@ -82,12 +82,7 @@ jobs:
           repository: chc-comp/${{ inputs.repo }}
           sparse-checkout: ${{ inputs.directory }}
 
-      - run: | 
-          # Check if instances are actually zipped:
-          if ls some-dir/*.gz 1> /dev/null 2>&1; then
-              # If yes, unzip. Otherwise assume it's already unzipped.
-              gunzip ${{ inputs.directory }}/*.gz
-          fi                    
+      - run: gunzip ${{ inputs.directory }}/*.gz  
 
       # retrieve previously built binary
       - name: Import LoAT Binary

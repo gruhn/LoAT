@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1720356005271,
+  "lastUpdate": 1720357491958,
   "repoUrl": "https://github.com/gruhn/LoAT",
   "entries": {
     "LoAT Benchmarks": [
@@ -273,6 +273,33 @@ window.BENCHMARK_DATA = {
           {
             "name": "chc-comp24-benchmarks timeout",
             "value": "166",
+            "unit": "number"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Niklas Gruhn",
+            "username": "gruhn",
+            "email": "niklas@gruhn.me"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "d5605f81a982037f8deaa4a52eeec88215f4e021",
+          "message": "Update run-benchmarks.yml",
+          "timestamp": "2024-07-07T13:02:02Z",
+          "url": "https://github.com/gruhn/LoAT/commit/d5605f81a982037f8deaa4a52eeec88215f4e021"
+        },
+        "date": 1720357490943,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "chc-comp24-benchmarks error",
+            "value": "300",
             "unit": "number"
           }
         ]

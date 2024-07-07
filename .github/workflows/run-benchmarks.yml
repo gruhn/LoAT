@@ -7,7 +7,14 @@ on:
       timeout:
         required: true
         type: number
-        default: 20
+        default: 300
+      tool: 
+        required: true
+        type: choice
+        default: loat
+        options:
+        - loat
+        - z3
       engine:
         required: true
         type: choice
@@ -106,7 +113,11 @@ jobs:
             start=`date +%s`
 
             set +e
-            result=$(timeout ${{ inputs.timeout }} loat-static --mode ${{ matrix.mode }} --format ${{ matrix.format }} --proof-level 0 --engine ${{ inputs.engine }} "${filename}")
+            if [[ ${{ inputs.tool }} -eq "z3" ]]; then
+              result=$(timeout ${{ inputs.timeout }} z3 "${filename}")
+            else
+              result=$(timeout ${{ inputs.timeout }} loat-static --mode ${{ matrix.mode }} --format ${{ matrix.format }} --proof-level 0 --engine ${{ inputs.engine }} "${filename}")
+            fi            
             exit_status=$?
             set -e
 

@@ -50,20 +50,18 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           # Build LoAT binary inside the latest pushed base image:
-          image: ${{ vars.DOCKERHUB_USERNAME }}/loat-base:1bb24a9573df196923f26bdbfdc4c6d5d9399ed6
+          image: ${{ vars.DOCKERHUB_USERNAME }}/loat-base:0333c5a0
           options: -v ${{ github.workspace }}:/LoAT
           shell: bash
           run: |
             mkdir -p /LoAT/build/release
             cd /LoAT/build/release
-            cmake -DCMAKE_BUILD_TYPE=Release ../../
-            make -j$(nproc)
-
-      - name: Export LoAT Binary
+      
+      - name: Export Z3 Binary
         uses: actions/upload-artifact@master
         with:
-          name: loat-static
-          path: build/release/loat-static
+          name: z3
+          path: /usr/local/bin/z3
 
   chc-comp-benchmark:
     needs: [build-loat-binary]
@@ -82,13 +80,12 @@ jobs:
           repository: chc-comp/${{ inputs.repo }}
           sparse-checkout: ${{ inputs.directory }}
 
-      - run: gunzip ${{ inputs.directory }}/*.gz  
-
-      # retrieve previously built binary
-      - name: Import LoAT Binary
+      - run: gunzip ${{ inputs.directory }}/*.gz
+      
+      - name: Import Z3 Binary
         uses: actions/download-artifact@master
         with:
-          name: loat-static
+          name: z3
           path: /usr/local/bin/
 
       - name: Run Benchmark
@@ -100,7 +97,7 @@ jobs:
             start=`date +%s`
 
             set +e            
-            result=$(timeout ${{ inputs.timeout }} loat-static --mode ${{ matrix.mode }} --format ${{ matrix.format }} --proof-level 0 --engine adcl "${filename}")        
+            result=$(timeout ${{ inputs.timeout }} z3 "${filename}")        
             exit_status=$?
             set -e
 
@@ -124,7 +121,7 @@ jobs:
           export -f benchmark
 
           # permissions are not preserved for artifacts:
-          chmod +x /usr/local/bin/loat-static
+          chmod +x /usr/local/bin/z3
 
           cd ${{ inputs.directory }}
 

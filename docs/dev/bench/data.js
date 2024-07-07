@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1710700033246,
+  "lastUpdate": 1720356005271,
   "repoUrl": "https://github.com/gruhn/LoAT",
   "entries": {
     "LoAT Benchmarks": [
@@ -211,6 +211,68 @@ window.BENCHMARK_DATA = {
           {
             "name": "chc-comp23-benchmarks timeout",
             "value": "300",
+            "unit": "number"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Niklas Gruhn",
+            "username": "gruhn",
+            "email": "niklas@gruhn.me"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "ae2f19a310ad37683b18f4865e050bbe72527011",
+          "message": "Update run-benchmarks.yml",
+          "timestamp": "2024-07-07T12:20:17Z",
+          "url": "https://github.com/gruhn/LoAT/commit/ae2f19a310ad37683b18f4865e050bbe72527011"
+        },
+        "date": 1720356002065,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "chc-comp24-benchmarks error",
+            "value": "2",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp24-benchmarks sat",
+            "value": "26",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp24-benchmarks subs",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp24-benchmarks size:",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp24-benchmarks 67855",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp24-benchmarks unknown",
+            "value": "36",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp24-benchmarks unsat",
+            "value": "69",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp24-benchmarks timeout",
+            "value": "166",
             "unit": "number"
           }
         ]

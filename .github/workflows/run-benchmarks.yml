@@ -11,9 +11,9 @@ on:
       tool: 
         required: true
         type: choice
-        default: loat
+        default: z3
         options:
-        - loat
+        - golem
         - z3
       repo:
         required: true
@@ -69,7 +69,7 @@ jobs:
             start=`date +%s`
 
             set +e            
-            result=$(timeout ${{ inputs.timeout }} z3 "${filename}")        
+            result=$(timeout ${{ inputs.timeout }} ${{ inputs.tool }} "${filename}")        
             exit_status=$?
             set -e
 

@@ -40,34 +40,10 @@ permissions:
   contents: write
 
 jobs:
-  build-loat-binary:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout LoAT Repository
-        uses: actions/checkout@v4
-
-      - name: Build LoAT Binary
-        uses: addnab/docker-run-action@v3
-        with:
-          # Build LoAT binary inside the latest pushed base image:
-          image: ${{ vars.DOCKERHUB_USERNAME }}/loat-base:1bb24a9573df196923f26bdbfdc4c6d5d9399ed6
-          options: -v ${{ github.workspace }}:/LoAT
-          shell: bash
-          run: |
-            mkdir -p /LoAT/build/release
-            cd /LoAT/build/release
-            cmake -DCMAKE_BUILD_TYPE=Release ../../
-            make -j$(nproc)
-
-      - name: Export LoAT Binary
-        uses: actions/upload-artifact@master
-        with:
-          name: loat-static
-          path: build/release/loat-static
 
   chc-comp-benchmark:
-    needs: [build-loat-binary]
     runs-on: ubuntu-latest
+    container: ghcr.io/z3prover/z3:ubuntu-20.04-bare-z3-sha-1da1320
     strategy:
       matrix:
         ci_index: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
@@ -100,7 +76,7 @@ jobs:
             start=`date +%s`
 
             set +e            
-            result=$(timeout ${{ inputs.timeout }} loat-static --mode ${{ matrix.mode }} --format ${{ matrix.format }} --proof-level 0 --engine adcl "${filename}")        
+            result=$(timeout ${{ inputs.timeout }} z3 "${filename}")        
             exit_status=$?
             set -e
 

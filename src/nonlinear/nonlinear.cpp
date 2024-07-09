@@ -543,6 +543,7 @@ const std::set<Clause> presolve(const std::vector<Clause>& initial_chcs) {
     }
 
     std::set<Clause> result_chcs(initial_chcs.begin(), initial_chcs.end());
+    return result_chcs; // TEMP
 
     // iterate over each RHS predicate and ...
     while (!todo_rhs_preds.empty()) {

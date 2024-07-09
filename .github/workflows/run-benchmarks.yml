@@ -61,6 +61,7 @@ jobs:
       - run: gunzip ${{ inputs.directory }}/*.gz
 
       - name: Run Benchmark
+        shell: bash
         run: |
           # function to run a single benchmark
           function benchmark() {

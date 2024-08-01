@@ -107,7 +107,7 @@ jobs:
             start=`date +%s`
 
             set +e            
-            result=$(timeout ${{ inputs.timeout }} loat-static --mode ${{ matrix.mode }} --format ${{ matrix.format }} --smt ${{ matrix.smt }} --proof-level 0 --engine adcl "${filename}")        
+            result=$(timeout ${{ inputs.timeout }} loat-static --mode ${{ matrix.mode }} --format ${{ matrix.format }} --smt ${{ inputs.smt }} --proof-level 0 --engine adcl "${filename}")        
             exit_status=$?
             set -e
 

@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1722512705905,
+  "lastUpdate": 1722515837258,
   "repoUrl": "https://github.com/gruhn/LoAT",
   "entries": {
     "LoAT Benchmarks": [
@@ -18939,6 +18939,43 @@ window.BENCHMARK_DATA = {
           },
           {
             "name": "chc-comp22-benchmarks 1s",
+            "value": "",
+            "unit": "number"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Niklas Gruhn",
+            "username": "gruhn",
+            "email": "niklas@gruhn.me"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "afeb270cf8d7d8a05b6cdb4eb85c8b3baedda0b4",
+          "message": "turn preprocessing back on",
+          "timestamp": "2024-08-01T12:21:16Z",
+          "url": "https://github.com/gruhn/LoAT/commit/afeb270cf8d7d8a05b6cdb4eb85c8b3baedda0b4"
+        },
+        "date": 1722515836170,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "chc-comp22-benchmarks error",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 0s",
             "value": "",
             "unit": "number"
           }

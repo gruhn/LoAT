@@ -15,6 +15,13 @@ on:
         options:
         - loat
         - z3
+      smt:
+        required: true
+        type: choice
+        default: yices
+        options:
+        - yices
+        - z3
       repo:
         required: true
         type: choice
@@ -100,7 +107,7 @@ jobs:
             start=`date +%s`
 
             set +e            
-            result=$(timeout ${{ inputs.timeout }} loat-static --mode ${{ matrix.mode }} --format ${{ matrix.format }} --proof-level 0 --engine adcl "${filename}")        
+            result=$(timeout ${{ inputs.timeout }} loat-static --mode ${{ matrix.mode }} --format ${{ matrix.format }} --smt ${{ matrix.smt }} --proof-level 0 --engine adcl "${filename}")        
             exit_status=$?
             set -e
 

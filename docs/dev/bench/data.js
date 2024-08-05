@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1722858102923,
+  "lastUpdate": 1722876928677,
   "repoUrl": "https://github.com/gruhn/LoAT",
   "entries": {
     "LoAT Benchmarks": [
@@ -25521,6 +25521,1348 @@ window.BENCHMARK_DATA = {
           },
           {
             "name": "chc-comp23-benchmarks 8s",
+            "value": "",
+            "unit": "number"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Niklas Gruhn",
+            "username": "gruhn",
+            "email": "niklas@gruhn.me"
+          },
+          "committer": {
+            "name": "Niklas Gruhn",
+            "username": "gruhn",
+            "email": "niklas@gruhn.me"
+          },
+          "id": "f4b9dc4675217540e356ef83305e2d8c2f69a37b",
+          "message": "temp: preprocessing benchmark",
+          "timestamp": "2024-08-05T11:06:28Z",
+          "url": "https://github.com/gruhn/LoAT/commit/f4b9dc4675217540e356ef83305e2d8c2f69a37b"
+        },
+        "date": 1722876927676,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "chc-comp22-benchmarks linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 1s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 27s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 98s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 30s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 2s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 73s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 63s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 0s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 52s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 82s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 0s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 32s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 2s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 13s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 40s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 7s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 35s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 4s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 83s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 11s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 20s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 56s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks timeout",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 301s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 7s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 89s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 34s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 122s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 118s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 9s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 109s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 116s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 26s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 130s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 231s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 49s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 265s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 1s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 5s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 47s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 21s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 8s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 14s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 3s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 85s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 31s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 6s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 4s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 34s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 5s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 111s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 2s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 155s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 120s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 192s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 10s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 156s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks timeout",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 300s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 0s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 105s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 15s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 59s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 39s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 54s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 3s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 28s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 8s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 260s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 1s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 87s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 33s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 43s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 202s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 36s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 6s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 4s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 22s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 27s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 9s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 15s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 92s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 25s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 5s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks sat",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 55s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 88s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 3s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 13s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 8s",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks non-linear",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks after",
+            "value": "",
+            "unit": "number"
+          },
+          {
+            "name": "chc-comp22-benchmarks 126s",
             "value": "",
             "unit": "number"
           }

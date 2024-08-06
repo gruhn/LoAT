@@ -68,6 +68,7 @@ void NonLinearSolver::analyze(const std::vector<Clause>& initial_chcs) {
             }
 
             // Hand over to linear solver to derive new facts:
+            std::cout << "call-lin ";
             const auto& derived_facts = linear_solver.derive_new_facts(max_constraint_tier);
 
             // If the linear solver proved Unsat, we can terminate. Otherwise, we use the derived facts to in the next

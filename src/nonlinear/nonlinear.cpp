@@ -40,23 +40,14 @@ bool is_trivially_sat(const std::set<Clause>& chc_problem) {
 void NonLinearSolver::analyze(const std::vector<Clause>& initial_chcs) {
     const std::set<Clause> chcs_preprocessed = presolve(normalize_all_preds(initial_chcs));
 
-    for (const Clause& chc: chcs_preprocessed) {
-        if (!chc.rhs.has_value() && chc.lhs.size() == 0 && SmtFactory::check(chc.guard) == Sat) {
-            std::cout << "unsat" << std::endl;
-            return;
-        }
-    }
-
     if (is_trivially_sat(chcs_preprocessed)) {
         // If preprocessing manages to eliminate all clauses or at least all facts/queries 
         // we can terminate with SAT.
         std::cout << "sat" << std::endl;
         return;    
     } else if (allLinear(chcs_preprocessed)) {
-        std::cout << "linear" << std::endl;
-        return;
-    } else {
-        std::cout << "non-linear" << std::endl;
+        ITSPtr its = ITSProblem::fromClauses(chcs_preprocessed);
+        reachability::Reachability::analyze(*its);
         return;
     }
 

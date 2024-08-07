@@ -18,7 +18,7 @@ on:
       smt:
         required: true
         type: choice
-        default: yices
+        default: z3
         options:
         - yices
         - z3
@@ -114,13 +114,13 @@ jobs:
             end=`date +%s`
             runtime=$((end-start))
 
-            if [[ $exit_status -eq 0 ]]; then
-              result=$(echo "$result" | head -n 1)
-            elif [[ $exit_status -eq 124 ]]; then
-              result="timeout"
-            else
-              result="error"
-            fi
+            # if [[ $exit_status -eq 0 ]]; then
+            #  result=$(echo "$result" | head -n 1)
+            # elif [[ $exit_status -eq 124 ]]; then
+            #  result="timeout"
+            # else
+            #  result="error"
+            # fi
 
             printf "${result} after ${runtime}s\n"
 

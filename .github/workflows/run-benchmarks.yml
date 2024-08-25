@@ -115,7 +115,7 @@ jobs:
             runtime=$((end-start))
 
             # if [[ $exit_status -eq 0 ]]; then
-            #  result=$(echo "$result" | head -n 1)
+            result=$(echo "$result" | head -n 1)
             # elif [[ $exit_status -eq 124 ]]; then
             #  result="timeout"
             # else

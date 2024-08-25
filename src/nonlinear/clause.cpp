@@ -165,11 +165,6 @@ const Clause Clause::renameWith(const Subs &renaming) const {
         lhs_renamed.push_back(pred.renameWith(renaming));
     }
 
-    // TODO: bottleneck applying large subsitution with 20_000 vars
-    if (renaming.size() > 15000) {
-        std::cout << "subs size: " << renaming.size() << std::endl;
-        std::cout << guard << std::endl;
-    }
     const auto guard_renamed = guard->subs(renaming);
 
     if (rhs.has_value()) {
